@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import styled, { css } from 'styled-components'
+import sdaLogo from '../images/sdalogo-white.png'
 
 const Inner = styled.div`
   max-width: 1280px;
@@ -27,9 +28,10 @@ const LogoLink = styled(Link)`
   flex-shrink: 0;
 `
 
-const FlameSvg = styled.svg`
-  width: 38px;
-  height: 38px;
+const LogoImg = styled.img`
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
   flex-shrink: 0;
 `
 
@@ -368,38 +370,7 @@ const MobileGiving = styled.a`
   }
 `
 
-// ── Flame / cross logo icon (SVG approximation of SDA torch symbol) ───────────
 
-function FlameIcon() {
-  return (
-    <FlameSvg viewBox="0 0 38 38" aria-hidden="true">
-      {/* Outer circle */}
-      <circle cx="19" cy="19" r="18" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="1" />
-      {/* Stylised SDA-style torch flame shape */}
-      <g transform="translate(19,19)">
-        {/* vertical staff */}
-        <rect x="-1.2" y="-9" width="2.4" height="14" rx="1.2" fill="#4db8c8" />
-        {/* left wing */}
-        <path
-          d="M-1.2 2 C-8 0 -10 -6 -6 -10 C-4 -7 -3 -4 -1.2 2Z"
-          fill="#4db8c8"
-          opacity="0.9"
-        />
-        {/* right wing */}
-        <path
-          d="M1.2 2 C8 0 10 -6 6 -10 C4 -7 3 -4 1.2 2Z"
-          fill="#4db8c8"
-          opacity="0.9"
-        />
-        {/* flame tip glow */}
-        <ellipse cx="0" cy="-10" rx="2" ry="3" fill="#7de0ee" opacity="0.8" />
-        {/* base line */}
-        <rect x="-5" y="5" width="10" height="1.8" rx="0.9" fill="#4db8c8" opacity="0.7" />
-        <rect x="-3.5" y="7.5" width="7" height="1.5" rx="0.75" fill="#4db8c8" opacity="0.5" />
-      </g>
-    </FlameSvg>
-  )
-}
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -427,7 +398,7 @@ export default function Navbar() {
         <Inner>
           {/* ── Logo ── */}
           <LogoLink to="/">
-            <FlameIcon />
+            <LogoImg src={sdaLogo} alt="SDA Church logo" />
             <LogoText>Emganwini Main SDA Church</LogoText>
           </LogoLink>
 
