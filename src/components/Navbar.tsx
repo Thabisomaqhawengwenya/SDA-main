@@ -33,15 +33,46 @@ const LogoImg = styled.img`
   height: 44px;
   object-fit: contain;
   flex-shrink: 0;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    width: 36px;
+    height: 36px;
+  }
 `
 
-const LogoText = styled.span`
+const LogoTextWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+`
+
+const LogoLine1 = styled.span`
   font-family: ${({ theme }) => theme.fonts.sans};
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   color: #ffffff;
   letter-spacing: 0.01em;
+  line-height: 1.2;
   white-space: nowrap;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    font-size: 14px;
+  }
+`
+
+const LogoLine2 = styled.span`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  white-space: nowrap;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    font-size: 10px;
+  }
 `
 
 // ── Right column (top util row + bottom nav row) ──────────────────────────────
@@ -269,7 +300,6 @@ const SearchBtn = styled.button`
 const MobileRight = styled.div`
   display: none;
   align-items: center;
-  gap: 12px;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     display: flex;
@@ -399,7 +429,10 @@ export default function Navbar() {
           {/* ── Logo ── */}
           <LogoLink to="/">
             <LogoImg src={sdaLogo} alt="SDA Church logo" />
-            <LogoText>Emganwini Main SDA Church</LogoText>
+            <LogoTextWrap>
+              <LogoLine1>Emganwini Main</LogoLine1>
+              <LogoLine2>SDA Church</LogoLine2>
+            </LogoTextWrap>
           </LogoLink>
 
           {/* ── Desktop right column ── */}
@@ -475,14 +508,8 @@ export default function Navbar() {
             </NavRow>
           </RightCol>
 
-          {/* ── Mobile right ── */}
+          {/* ── Mobile right — hamburger only ── */}
           <MobileRight>
-            <GivingBtn href="#giving" style={{ fontSize: '11px', padding: '4px 10px 4px 8px' }}>
-              <svg viewBox="0 0 16 16" style={{ width: 12, height: 12, fill: '#e05555' }}>
-                <path d="M8 14s-6-3.5-6-7.5A4.5 4.5 0 0 1 8 3.07 4.5 4.5 0 0 1 14 6.5C14 10.5 8 14 8 14z" />
-              </svg>
-              Giving
-            </GivingBtn>
             <Hamburger
               $open={menuOpen}
               onClick={() => setMenuOpen((v) => !v)}
@@ -502,7 +529,7 @@ export default function Navbar() {
           <MobileNavItem to="/calendar" onClick={() => setMenuOpen(false)}>Calendar</MobileNavItem>
           <MobileNavItem to="/ministries/youth" onClick={() => setMenuOpen(false)}>Ministries</MobileNavItem>
           <MobileNavItem to="/contact" onClick={() => setMenuOpen(false)}>Contact Us</MobileNavItem>
-          <MobileGiving href="#giving">
+          <MobileGiving href="#giving" onClick={() => setMenuOpen(false)}>
             <svg viewBox="0 0 16 16" style={{ width: 13, height: 13, fill: '#e05555' }}>
               <path d="M8 14s-6-3.5-6-7.5A4.5 4.5 0 0 1 8 3.07 4.5 4.5 0 0 1 14 6.5C14 10.5 8 14 8 14z" />
             </svg>

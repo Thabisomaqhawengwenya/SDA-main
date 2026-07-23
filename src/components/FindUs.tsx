@@ -1,11 +1,11 @@
 import styled from 'styled-components'
 
 const Section = styled.section`
-  padding: 32px 32px 0;
+  padding: 32px 32px 32px;
   background: ${({ theme }) => theme.colors.bg};
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    padding: 24px 20px 0;
+    padding: 24px 20px 24px;
   }
 `
 
@@ -217,7 +217,7 @@ export default function FindUs() {
               Bulawayo, Zimbabwe
             </BlockText>
             <DirectionsLink
-              href="https://maps.google.com/?q=Emganwini,Bulawayo,Zimbabwe"
+              href="https://maps.app.goo.gl/ZtEBkLJjLnEhuKHs5"
               target="_blank"
               rel="noreferrer"
             >
@@ -259,7 +259,7 @@ export default function FindUs() {
         <MapWrapper>
           <iframe
             title="Emganwini SDA Church location"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d30374.5!2d28.556!3d-20.162!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1938376de8a0e48b%3A0x56ddd6c2b2352c04!2sEmganwini%2C+Bulawayo%2C+Zimbabwe!5e0!3m2!1sen!2sus!4v1700000000000"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3797.2!2d28.5234!3d-20.1847!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1938316b5a5a5a5b%3A0x0!2sEmganwini%2C+Bulawayo%2C+Zimbabwe!5e0!3m2!1sen!2szw!4v1700000000000!5m2!1sen!2szw"
             allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
