@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import styled, { keyframes } from 'styled-components'
+import styled from 'styled-components'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -130,68 +130,9 @@ const EVENTS: ChurchEvent[] = [
 
 // ── Styled Components ────────────────────────────────────────────────────────
 
-const fadeUp = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-`
-
 const PageWrapper = styled.main`
   flex: 1;
   padding-top: ${({ theme }) => theme.navHeight};
-`
-
-const HeroBanner = styled.section`
-  position: relative;
-  height: 320px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: linear-gradient(135deg, rgba(17, 38, 64, 0.85) 0%, rgba(23, 50, 75, 0.75) 100%),
-              url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=80') center / cover;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
-  }
-`
-
-const HeroContent = styled.div`
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  animation: ${fadeUp} 0.7s ease both;
-`
-
-const Breadcrumb = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-family: ${({ theme }) => theme.fonts.sans};
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 16px;
-
-  svg {
-    width: 14px;
-    height: 14px;
-    fill: currentColor;
-    opacity: 0.6;
-  }
-
-  span { opacity: 0.5; }
-`
-
-const HeroTitle = styled.h1`
-  font-family: ${({ theme }) => theme.fonts.serif};
-  font-size: clamp(40px, 5vw, 68px);
-  font-weight: 500;
-  color: #ffffff;
-  letter-spacing: -0.02em;
-  margin: 0;
 `
 
 const ContentSection = styled.section`
@@ -554,18 +495,6 @@ export default function EventsPage() {
 
   return (
     <PageWrapper>
-      {/* Hero Banner */}
-      <HeroBanner>
-        <HeroContent>
-          <Breadcrumb>
-            <svg viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span>/</span>
-            <span>Events</span>
-          </Breadcrumb>
-          <HeroTitle>Events</HeroTitle>
-        </HeroContent>
-      </HeroBanner>
-
       {/* Main Content */}
       <ContentSection>
         {/* Toolbar */}

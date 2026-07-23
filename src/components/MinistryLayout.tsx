@@ -17,13 +17,13 @@ export const PageWrapper = styled.main`
 
 export const HeroBanner = styled.section`
   position: relative;
-  height: 420px;
+  min-height: 100vh;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   overflow: hidden;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    height: 300px;
+    min-height: 100vh;
   }
 `
 
@@ -51,11 +51,11 @@ export const HeroContent = styled.div`
   position: relative;
   z-index: 2;
   width: 100%;
-  padding: 0 48px 44px;
+  padding: 0 48px;
   animation: ${fadeUp} 0.65s ease both;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    padding: 0 24px 32px;
+    padding: 0 24px;
   }
 `
 

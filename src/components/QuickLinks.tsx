@@ -6,8 +6,6 @@ const fadeUp = keyframes`
   to   { opacity: 1; transform: translateY(0); }
 `
 
-// ── Section wraps cards in a padded white container ───────────────────────────
-
 const Section = styled.section`
   background: #ffffff;
   padding: 48px 32px 56px;
@@ -18,41 +16,47 @@ const Section = styled.section`
 `
 
 const Grid = styled.div`
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 18px;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 14px;
   }
 `
-
-// ── Individual card — rounded, overflow hidden, fixed aspect ratio ─────────────
 
 const Card = styled(Link)`
   position: relative;
   display: block;
   overflow: hidden;
-  border-radius: 16px;
-  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  height: 420px;
   text-decoration: none;
   cursor: pointer;
   animation: ${fadeUp} 0.55s ease both;
-
-  /* Subtle shadow so cards lift off the white bg */
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.10);
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transition: box-shadow 0.35s ease, transform 0.35s ease;
 
   &:hover {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
-    transform: translateY(-3px);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
+    transform: translateY(-4px);
   }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    aspect-ratio: 16 / 9;
+    height: 340px;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    height: 280px;
   }
 `
 
@@ -78,26 +82,26 @@ const CardOverlay = styled.div`
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.62) 0%,
-    rgba(0, 0, 0, 0.12) 45%,
-    rgba(0, 0, 0, 0.0) 100%
+    rgba(0, 0, 0, 0.70) 0%,
+    rgba(0, 0, 0, 0.20) 35%,
+    rgba(0, 0, 0, 0.0) 60%
   );
   border-radius: inherit;
 `
 
-// ── Label bottom-left, same as the reference image ────────────────────────────
+// ── Label bottom-left ─────────────────────────────────────────────────────────
 
 const CardLabel = styled.span`
   position: absolute;
-  bottom: 24px;
-  left: 24px;
+  bottom: 22px;
+  left: 22px;
   font-family: ${({ theme }) => theme.fonts.serif};
-  font-size: clamp(20px, 2vw, 26px);
-  font-weight: 500;
+  font-size: 22px;
+  font-weight: 700;
   color: #ffffff;
   letter-spacing: -0.01em;
   line-height: 1.1;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
   pointer-events: none;
 `
 

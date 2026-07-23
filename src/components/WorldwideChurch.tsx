@@ -1,20 +1,21 @@
 import styled from 'styled-components'
+import { Link } from 'react-router-dom'
+
+// ── Section ───────────────────────────────────────────────────────────────────
 
 const Section = styled.section`
-  padding: 112px 48px;
-  background: ${({ theme }) => theme.colors.bg};
+  background: ${({ theme }) => theme.colors.surface};
+  padding: 72px 48px;
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    padding: 72px 24px;
+    padding: 56px 24px;
   }
 `
 
 const Container = styled.div`
   max-width: ${({ theme }) => theme.maxWidth};
   margin: 0 auto;
-`
-
-const Grid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 80px;
@@ -22,177 +23,202 @@ const Grid = styled.div`
 
   @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
     grid-template-columns: 1fr;
-    gap: 56px;
+    gap: 48px;
   }
 `
 
-const Left = styled.div``
+// ── Left column ───────────────────────────────────────────────────────────────
 
-const Label = styled.p`
+const Left = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+`
+
+const Intro = styled.p`
   font-family: ${({ theme }) => theme.fonts.sans};
-  font-size: 11px;
+  font-size: 15px;
+  font-weight: 300;
+  color: ${({ theme }) => theme.colors.text};
+  line-height: 1.85;
+`
+
+const Divider = styled.hr`
+  border: none;
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+`
+
+const PastorName = styled.p`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: ${({ theme }) => theme.colors.gold};
-  margin-bottom: 16px;
+  color: ${({ theme }) => theme.colors.text};
+  margin-bottom: 2px;
 `
 
-const Title = styled.h2`
-  font-family: ${({ theme }) => theme.fonts.serif};
-  font-size: clamp(28px, 3.2vw, 42px);
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.accentDark};
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-  margin-bottom: 28px;
-`
-
-const Body = styled.p`
+const PastorChurch = styled.p`
   font-family: ${({ theme }) => theme.fonts.sans};
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 300;
   color: ${({ theme }) => theme.colors.textMuted};
-  line-height: 1.85;
-  margin-bottom: 20px;
 `
 
-const LearnMore = styled.a`
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: ${({ theme }) => theme.fonts.sans};
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: ${({ theme }) => theme.colors.accent};
-  text-decoration: none;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.accent};
-  padding-bottom: 2px;
-  margin-top: 16px;
-  transition: color 0.2s ease, border-color 0.2s ease;
+const ServiceBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`
 
-  &:hover {
-    color: ${({ theme }) => theme.colors.accentDark};
-    border-color: ${({ theme }) => theme.colors.accentDark};
+const ServiceHeading = styled.p`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 14px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+`
+
+const ServiceLine = styled.p`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 14px;
+  font-weight: 300;
+  color: ${({ theme }) => theme.colors.text};
+
+  strong {
+    font-weight: 600;
   }
 `
+
+const EmailLink = styled.a`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 14px;
+  font-weight: 300;
+  color: ${({ theme }) => theme.colors.text};
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.accent};
+  }
+`
+
+// ── Right column ──────────────────────────────────────────────────────────────
 
 const Right = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 20px;
 `
 
-const StatCard = styled.div`
-  padding: 36px 40px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.md};
-  display: flex;
-  align-items: flex-start;
-  gap: 24px;
-  background: ${({ theme }) => theme.colors.surface};
-  margin-bottom: 12px;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+const Title = styled.h2`
+  font-family: ${({ theme }) => theme.fonts.serif};
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text};
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+`
 
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.accentLight};
-    box-shadow: ${({ theme }) => theme.shadows.md};
+const Body = styled.p`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 15px;
+  font-weight: 300;
+  color: ${({ theme }) => theme.colors.textMuted};
+  line-height: 1.85;
+
+  a {
+    color: #1da1f2;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 `
 
-const StatIcon = styled.div`
-  width: 48px;
-  height: 48px;
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.colors.offWhite};
-  display: flex;
+const LearnMoreBtn = styled(Link)`
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
-  flex-shrink: 0;
-`
-
-const StatBody = styled.div``
-
-const StatNumber = styled.p`
-  font-family: ${({ theme }) => theme.fonts.serif};
-  font-size: 28px;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.accentDark};
-  letter-spacing: -0.02em;
-  margin-bottom: 4px;
-`
-
-const StatLabel = styled.p`
   font-family: ${({ theme }) => theme.fonts.sans};
   font-size: 13px;
-  font-weight: 300;
-  color: ${({ theme }) => theme.colors.textMuted};
-  line-height: 1.5;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: #1da1f2;
+  border-radius: ${({ theme }) => theme.radius.full};
+  padding: 14px 32px;
+  text-decoration: none;
+  width: fit-content;
+  transition: background 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    background: #1a8fd1;
+    transform: translateY(-1px);
+  }
 `
 
-const stats = [
-  {
-    icon: '🌍',
-    number: '19 Million',
-    label: 'Members worldwide, including 1M+ in North America',
-  },
-  {
-    icon: '🏥',
-    number: '173',
-    label: 'Hospitals and sanitariums operated globally',
-  },
-  {
-    icon: '🎓',
-    number: '7,500+',
-    label: 'Schools around the world',
-  },
-  {
-    icon: '🤝',
-    number: '130+',
-    label: 'Countries served by ADRA for community development & disaster relief',
-  },
-]
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function WorldwideChurch() {
   return (
-    <Section id="about-section">
+    <Section>
       <Container>
-        <Grid>
-          <Left>
-            <Label>A Worldwide Family</Label>
-            <Title>A Global Community of Faith</Title>
-            <Body>
-              The Seventh-day Adventist Church is a mainstream Protestant church
-              with members across every continent. Adventists believe that God is
-              concerned with the quality of human life — the way we live, eat,
-              speak, think, treat each other, and care for the world around us.
-            </Body>
-            <Body>
-              When Jesus returned to heaven following the resurrection, He left
-              the Holy Spirit to serve as our Comforter and Counselor. He
-              promised to return to earth a second time to complete His plan of
-              salvation and take His people to heaven.
-            </Body>
-            <LearnMore href="/about">
-              Read about our beliefs →
-            </LearnMore>
-          </Left>
+        {/* Left */}
+        <Left>
+          <Intro>
+            We are a Christian community and would love to have you join our
+            family. To learn more about what we believe you can visit our About
+            Us page. Please join us for Bible study, worship, and prayer.
+          </Intro>
 
-          <Right>
-            {stats.map((s) => (
-              <StatCard key={s.number}>
-                <StatIcon>{s.icon}</StatIcon>
-                <StatBody>
-                  <StatNumber>{s.number}</StatNumber>
-                  <StatLabel>{s.label}</StatLabel>
-                </StatBody>
-              </StatCard>
-            ))}
-          </Right>
-        </Grid>
+          <Divider />
+
+          <div>
+            <PastorName>Pastor Waren Muir</PastorName>
+            <PastorChurch>Emganwini Main SDA Church</PastorChurch>
+          </div>
+
+          <Divider />
+
+          <p style={{ fontFamily: 'inherit', fontSize: '14px', fontWeight: 400 }}>
+            Join Us This Saturday
+          </p>
+
+          <ServiceBlock>
+            <ServiceHeading>Service times:</ServiceHeading>
+            <ServiceLine><strong>Sabbath School:</strong> 10:30 am</ServiceLine>
+            <ServiceLine><strong>Worship Service:</strong> 11:30 am</ServiceLine>
+          </ServiceBlock>
+
+          <EmailLink href="mailto:Connect@Emganwinisda.org">
+            Connect@Emganwinisda.org
+          </EmailLink>
+        </Left>
+
+        {/* Right */}
+        <Right>
+          <Title>A Worldwide<br />Church Family</Title>
+          <Body>
+            The Seventh-day Adventist Church is a mainstream Protestant church
+            with approximately{' '}
+            <a href="https://www.adventist.org" target="_blank" rel="noreferrer">
+              19 million members worldwide
+            </a>
+            , including more than one million members in North America. The
+            Adventist Church operates{' '}
+            <a href="https://www.adventist.org" target="_blank" rel="noreferrer">
+              173 hospitals and sanitariums
+            </a>{' '}
+            and more than{' '}
+            <a href="https://www.adventist.org" target="_blank" rel="noreferrer">
+              7,500 schools around the world
+            </a>
+            . The Adventist Development and Relief Agency (ADRA) works within
+            communities in more than 130 countries to provide community
+            development and disaster relief.
+          </Body>
+          <LearnMoreBtn to="/about">Learn More</LearnMoreBtn>
+        </Right>
       </Container>
     </Section>
   )

@@ -1,7 +1,7 @@
 export const theme = {
   fonts: {
-    serif: "'Playfair Display', Georgia, serif",
-    sans: "'Inter', system-ui, sans-serif",
+    serif: "'Noto Serif', Georgia, serif",
+    sans: "'Noto Sans', Helvetica, Arial, sans-serif",
   },
   colors: {
     bg: '#fafaf8',

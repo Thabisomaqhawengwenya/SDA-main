@@ -3,6 +3,7 @@ import { ThemeProvider } from 'styled-components'
 import { theme } from './theme'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import WorldwideChurch from './components/WorldwideChurch'
 import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
 import EventsPage from './pages/EventsPage'
@@ -13,6 +14,7 @@ import WomensMinistryPage from './pages/WomensMinistryPage'
 import MensMinistryPage from './pages/MensMinistryPage'
 import ChildrensMinistryPage from './pages/ChildrensMinistryPage'
 import CommunityOutreachPage from './pages/CommunityOutreachPage'
+import ContactPage from './pages/ContactPage'
 
 export default function App() {
   return (
@@ -30,7 +32,9 @@ export default function App() {
           <Route path="/ministries/men"         element={<MensMinistryPage />} />
           <Route path="/ministries/children"    element={<ChildrensMinistryPage />} />
           <Route path="/ministries/community"   element={<CommunityOutreachPage />} />
+          <Route path="/contact"               element={<ContactPage />} />
         </Routes>
+        <WorldwideChurch />
         <Footer />
       </BrowserRouter>
     </ThemeProvider>
