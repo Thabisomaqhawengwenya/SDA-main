@@ -439,7 +439,7 @@ export default function Navbar() {
           <RightCol>
             {/* Top row: Giving + socials */}
             <UtilRow>
-              <GivingBtn href="#giving">
+              <GivingBtn href="/giving">
                 <svg viewBox="0 0 16 16">
                   <path d="M8 14s-6-3.5-6-7.5A4.5 4.5 0 0 1 8 3.07 4.5 4.5 0 0 1 14 6.5C14 10.5 8 14 8 14z" />
                 </svg>
@@ -489,7 +489,7 @@ export default function Navbar() {
                 <Dropdown>
                   <DropdownItem to="/ministries/youth">Youth</DropdownItem>
                   <DropdownItem to="/ministries/women">Women's Ministry</DropdownItem>
-                  <DropdownItem to="/ministries/men">Men's Ministry</DropdownItem>
+                  <DropdownItem to="/ministries/men">AMO – Adventist Men's Organisation</DropdownItem>
                   <DropdownItem to="/ministries/children">Children</DropdownItem>
                   <DropdownItem to="/ministries/community">Community Outreach</DropdownItem>
                 </Dropdown>

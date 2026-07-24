@@ -4,6 +4,7 @@ import { theme } from './theme'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import WorldwideChurch from './components/WorldwideChurch'
+import ScrollToTop from './components/ScrollToTop'
 import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
 import EventsPage from './pages/EventsPage'
@@ -15,11 +16,13 @@ import MensMinistryPage from './pages/MensMinistryPage'
 import ChildrensMinistryPage from './pages/ChildrensMinistryPage'
 import CommunityOutreachPage from './pages/CommunityOutreachPage'
 import ContactPage from './pages/ContactPage'
+import GivingPage from './pages/GivingPage'
 
 export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <BrowserRouter>
+        <ScrollToTop />
         <Navbar />
         <Routes>
           <Route path="/"                       element={<HomePage />} />
@@ -33,6 +36,7 @@ export default function App() {
           <Route path="/ministries/children"    element={<ChildrensMinistryPage />} />
           <Route path="/ministries/community"   element={<CommunityOutreachPage />} />
           <Route path="/contact"               element={<ContactPage />} />
+          <Route path="/giving"                element={<GivingPage />} />
         </Routes>
         <WorldwideChurch />
         <Footer />

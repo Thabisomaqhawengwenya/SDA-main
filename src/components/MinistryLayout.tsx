@@ -217,7 +217,7 @@ export const MINISTRY_LINKS = [
   { label: 'Prayer Ministry',     path: '/ministries/prayer' },
   { label: 'Youth Ministry',      path: '/ministries/youth' },
   { label: "Women's Ministry",    path: '/ministries/women' },
-  { label: "Men's Ministry",      path: '/ministries/men' },
+  { label: 'AMO – Adventist Men\'s Organisation', path: '/ministries/men' },
   { label: 'Children',            path: '/ministries/children' },
   { label: 'Community Outreach',  path: '/ministries/community' },
 ]
