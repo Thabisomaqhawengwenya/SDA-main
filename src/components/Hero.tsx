@@ -93,19 +93,19 @@ const PrimaryBtn = styled.a`
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: ${({ theme }) => theme.colors.white};
-  background: ${({ theme }) => theme.colors.accent};
+  background: #1DA1F2;
   padding: 14px 32px;
   border-radius: ${({ theme }) => theme.radius.full};
   text-decoration: none;
   transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 4px 20px rgba(74, 103, 65, 0.28);
+  box-shadow: 0 4px 20px rgba(29, 161, 242, 0.35);
   animation: ${fadeUp} 0.7s ease both;
   animation-delay: 0.55s;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.accentDark};
+    background: #1a8fd1;
     transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(74, 103, 65, 0.36);
+    box-shadow: 0 8px 28px rgba(29, 161, 242, 0.45);
   }
 `
 

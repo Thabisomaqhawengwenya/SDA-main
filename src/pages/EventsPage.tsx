@@ -38,7 +38,7 @@ const EVENTS: ChurchEvent[] = [
     time: '8:00 pm – 6:00 pm',
     category: 'Prayer & Fasting',
     categoryColor: '#8b5cf6',
-    description: 'Our dear church family, as we journey toward heaven, challenges and setbacks are expected. If we are not spiritually watchful, spiritual apathy can set in. There are serious concerns about […]',
+    description: 'Our dear church family, as we journey toward heaven, challenges and setbacks are expected. If we are not spiritually watchful, spiritual apathy can set in. There are serious concerns about how we engage our community.',
     isRecurring: true,
   },
   {
@@ -60,7 +60,7 @@ const EVENTS: ChurchEvent[] = [
     time: '8:00 pm – 6:00 pm',
     category: 'Prayer & Fasting',
     categoryColor: '#8b5cf6',
-    description: 'Our dear church family, as we journey toward heaven, challenges and setbacks are expected. If we are not spiritually watchful, spiritual apathy can set in. There are serious concerns about […]',
+    description: 'Our dear church family, as we journey toward heaven, challenges and setbacks are expected. If we are not spiritually watchful, spiritual apathy can set in.',
     isRecurring: true,
   },
   {
@@ -70,7 +70,7 @@ const EVENTS: ChurchEvent[] = [
     time: '10:00 am – 12:00 pm',
     category: 'Book Group',
     categoryColor: '#10b981',
-    description: 'Learn how to set healthy boundaries in all your relationships. Join us to learn "when to say yes and how to say no to take control of your life."',
+    description: 'Learn how to set healthy boundaries in all your relationships. Join us to learn when to say yes and how to say no to take control of your life.',
     location: 'Fellowship Hall',
   },
   {
@@ -128,457 +128,445 @@ const EVENTS: ChurchEvent[] = [
   },
 ]
 
-// ── Styled Components ────────────────────────────────────────────────────────
+// ── Image map ─────────────────────────────────────────────────────────────────
+
+const EVENT_IMAGES: Record<number, string> = {
+  1: 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=400&q=80',
+  2: 'https://images.unsplash.com/photo-1476725994324-6f756b28af53?w=400&q=80',
+  3: 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=400&q=80',
+  4: 'https://images.unsplash.com/photo-1476725994324-6f756b28af53?w=400&q=80',
+  5: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=80',
+  6: 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=400&q=80',
+  7: 'https://images.unsplash.com/photo-1476725994324-6f756b28af53?w=400&q=80',
+  8: 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=400&q=80',
+  9: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80',
+  10: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=80',
+}
+
+const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+
+// ── Styled Components ─────────────────────────────────────────────────────────
 
 const PageWrapper = styled.main`
   flex: 1;
   padding-top: ${({ theme }) => theme.navHeight};
 `
 
+// ── Hero ──────────────────────────────────────────────────────────────────────
+
+const HeroSection = styled.section`
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1600&q=80');
+  background-size: cover;
+  background-position: center;
+`
+
+const HeroOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+`
+
+const HeroContent = styled.div`
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 24px;
+`
+
+const HeroHeading = styled.h1`
+  font-family: ${({ theme }) => theme.fonts.serif};
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #ffffff;
+  margin: 0 0 28px;
+`
+
+const HeroSubtitle = styled.p`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 16px;
+  font-weight: 300;
+  color: #ffffff;
+  opacity: 0.85;
+  max-width: 480px;
+  line-height: 1.75;
+  margin: 0;
+`
+
+// ── Content ───────────────────────────────────────────────────────────────────
+
 const ContentSection = styled.section`
-  padding: 56px 32px 96px;
-  background: ${({ theme }) => theme.colors.bg};
-  max-width: 1100px;
+  background: #ffffff;
+  max-width: 900px;
   margin: 0 auto;
+  padding: 64px 32px 96px;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    padding: 40px 20px 72px;
+    padding: 48px 20px 72px;
   }
 `
 
-const Toolbar = styled.div`
+const ListHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 28px;
-  flex-wrap: wrap;
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  margin-bottom: 16px;
 `
 
-const SearchBar = styled.div`
-  position: relative;
-  flex: 1;
-  max-width: 400px;
-
-  svg {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 16px;
-    height: 16px;
-    stroke: ${({ theme }) => theme.colors.textMuted};
-    fill: none;
-    stroke-width: 2;
-  }
-
-  input {
-    width: 100%;
-    font-family: ${({ theme }) => theme.fonts.sans};
-    font-size: 14px;
-    color: ${({ theme }) => theme.colors.text};
-    background: ${({ theme }) => theme.colors.surface};
-    border: 1px solid ${({ theme }) => theme.colors.border};
-    border-radius: ${({ theme }) => theme.radius.md};
-    padding: 10px 14px 10px 42px;
-    outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-
-    &:focus {
-      border-color: ${({ theme }) => theme.colors.accent};
-      box-shadow: 0 0 0 3px rgba(74, 103, 65, 0.1);
-    }
-
-    &::placeholder {
-      color: ${({ theme }) => theme.colors.textMuted};
-    }
-  }
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    max-width: none;
-  }
+const ListTitle = styled.h2`
+  font-family: ${({ theme }) => theme.fonts.serif};
+  font-size: 22px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text};
+  margin: 0;
 `
 
-const ViewToggles = styled.div`
+const ToggleGroup = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 `
 
 const ToggleBtn = styled.button<{ $active?: boolean }>`
-  font-family: ${({ theme }) => theme.fonts.sans};
-  font-size: 13px;
-  font-weight: 500;
-  color: ${({ $active, theme }) => ($active ? theme.colors.white : theme.colors.text)};
-  background: ${({ $active, theme }) => ($active ? theme.colors.accent : theme.colors.surface)};
-  border: 1px solid ${({ $active, theme }) => ($active ? theme.colors.accent : theme.colors.border)};
-  border-radius: ${({ theme }) => theme.radius.sm};
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: ${({ $active, theme }) => ($active ? theme.colors.accentDark : theme.colors.offWhite)};
-    border-color: ${({ theme }) => theme.colors.accent};
-  }
-`
-
-const DateHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 40px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-`
-
-const DateNav = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 20px;
-`
-
-const NavBtn = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
   width: 36px;
   height: 36px;
-  background: ${({ theme }) => theme.colors.surface};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 50%;
-  color: ${({ theme }) => theme.colors.text};
+  background: none;
+  border: 1px solid ${({ $active }) => ($active ? '#1DA1F2' : '#e8e6e0')};
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
 
   svg {
-    width: 16px;
-    height: 16px;
+    width: 17px;
+    height: 17px;
+    stroke: ${({ $active }) => ($active ? '#1DA1F2' : '#9a9a9a')};
     fill: none;
-    stroke: currentColor;
-    stroke-width: 2.5;
+    stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
+    transition: stroke 0.2s ease;
   }
 
   &:hover {
-    background: ${({ theme }) => theme.colors.accent};
-    border-color: ${({ theme }) => theme.colors.accent};
-    color: ${({ theme }) => theme.colors.white};
+    border-color: #1DA1F2;
+    svg { stroke: #1DA1F2; }
   }
 `
 
-const DateRange = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  span {
-    font-family: ${({ theme }) => theme.fonts.sans};
-    font-size: 15px;
-    font-weight: 500;
-    color: ${({ theme }) => theme.colors.text};
-  }
-
-  button {
-    font-family: ${({ theme }) => theme.fonts.sans};
-    font-size: 13px;
-    font-weight: 500;
-    color: ${({ theme }) => theme.colors.accent};
-    background: none;
-    border: none;
-    cursor: pointer;
-    text-decoration: underline;
-    transition: color 0.2s ease;
-
-    &:hover {
-      color: ${({ theme }) => theme.colors.accentDark};
-    }
-  }
-`
-
-const FindEventsBtn = styled.button`
-  font-family: ${({ theme }) => theme.fonts.sans};
-  font-size: 13px;
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.white};
-  background: ${({ theme }) => theme.colors.accent};
+const HR = styled.hr`
   border: none;
-  border-radius: ${({ theme }) => theme.radius.md};
-  padding: 10px 24px;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
-
-  &:hover {
-    background: ${({ theme }) => theme.colors.accentDark};
-    transform: translateY(-1px);
-  }
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-    width: 100%;
-  }
+  border-top: 1px solid #e8e6e0;
+  margin: 0;
 `
 
-const EventsTimeline = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 56px;
-`
+// ── Event Row ─────────────────────────────────────────────────────────────────
 
-const MonthGroup = styled.div``
-
-const MonthLabel = styled.h2`
-  font-family: ${({ theme }) => theme.fonts.sans};
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: ${({ theme }) => theme.colors.textMuted};
-  margin-bottom: 24px;
-`
-
-const EventsList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-`
-
-const EventCard = styled.article`
+const EventRow = styled.article`
   display: grid;
-  grid-template-columns: 80px 1fr;
-  gap: 24px;
-  padding: 24px 0;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  grid-template-columns: 72px 200px 1fr;
+  gap: 28px;
+  align-items: start;
+  padding: 32px 0;
+  border-bottom: 1px solid #e8e6e0;
   transition: opacity 0.2s ease;
 
-  &:hover {
-    opacity: 0.85;
-  }
+  &:hover { opacity: 0.88; }
 
-  &:last-child {
-    border-bottom: none;
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: 72px 1fr;
+    grid-template-rows: auto auto;
   }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-    grid-template-columns: 60px 1fr;
+    grid-template-columns: 1fr;
     gap: 16px;
   }
 `
 
-const DayBadge = styled.div`
+const DateCol = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: ${({ theme }) => theme.colors.surface};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.md};
-  padding: 12px 8px;
-  text-align: center;
-  flex-shrink: 0;
+  align-items: flex-start;
+  padding-right: 20px;
+  border-right: 1px solid #e8e6e0;
+  padding-top: 4px;
 
-  span:first-child {
-    font-family: ${({ theme }) => theme.fonts.sans};
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: ${({ theme }) => theme.colors.textMuted};
-    margin-bottom: 4px;
-  }
-
-  span:last-child {
-    font-family: ${({ theme }) => theme.fonts.serif};
-    font-size: 28px;
-    font-weight: 500;
-    color: ${({ theme }) => theme.colors.accentDark};
-    line-height: 1;
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 6px;
+    border-right: none;
+    border-bottom: 1px solid #e8e6e0;
+    padding-right: 0;
+    padding-bottom: 10px;
   }
 `
 
-const EventContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-`
-
-const EventMeta = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  font-family: ${({ theme }) => theme.fonts.sans};
-  font-size: 13px;
-  color: ${({ theme }) => theme.colors.textMuted};
-
-  span {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  svg {
-    width: 14px;
-    height: 14px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-  }
-`
-
-const CategoryTag = styled.span<{ $color: string }>`
-  display: inline-block;
+const MonthAbbr = styled.span`
   font-family: ${({ theme }) => theme.fonts.sans};
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  color: ${({ $color }) => $color};
-  background: ${({ $color }) => `${$color}15`};
-  border: 1px solid ${({ $color }) => `${$color}40`};
-  border-radius: ${({ theme }) => theme.radius.sm};
-  padding: 3px 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.textMuted};
+  margin-bottom: 4px;
+`
+
+const DayNumber = styled.span`
+  font-family: ${({ theme }) => theme.fonts.serif};
+  font-size: 42px;
+  font-weight: 300;
+  color: ${({ theme }) => theme.colors.text};
+  line-height: 1;
+`
+
+const ThumbCol = styled.div`
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-column: 1;
+  }
+`
+
+const Thumbnail = styled.img`
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+`
+
+const ThumbPlaceholder = styled.div<{ $color: string }>`
+  width: 100%;
+  height: 130px;
+  border-radius: 4px;
+  background: ${({ $color }) => `${$color}22`};
+`
+
+const InfoCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-column: 1 / -1;
+  }
 `
 
 const EventTitle = styled.h3`
   font-family: ${({ theme }) => theme.fonts.serif};
-  font-size: 21px;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.accentDark};
+  font-size: 20px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
   line-height: 1.3;
   margin: 0;
-  letter-spacing: -0.01em;
+`
+
+const EventMeta = styled.p`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  margin: 0;
+  line-height: 1.5;
 `
 
 const EventDesc = styled.p`
   font-family: ${({ theme }) => theme.fonts.sans};
   font-size: 14px;
-  font-weight: 300;
   color: ${({ theme }) => theme.colors.textMuted};
-  line-height: 1.7;
+  line-height: 1.65;
   margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`
+
+const ViewLink = styled.span`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #1DA1F2;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: opacity 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  &:hover { opacity: 0.7; }
+`
+
+// ── Previous Events ───────────────────────────────────────────────────────────
+
+const PrevRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 44px 0 0;
+  cursor: pointer;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    stroke: ${({ theme }) => theme.colors.textMuted};
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  span {
+    font-family: ${({ theme }) => theme.fonts.sans};
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: ${({ theme }) => theme.colors.textMuted};
+  }
+
+  &:hover { opacity: 0.65; }
+`
+
+// ── Closing Banner ────────────────────────────────────────────────────────────
+
+const ClosingBanner = styled.section`
+  background: #1a1a1a;
+  width: 100%;
+  padding: 96px 48px;
+  text-align: center;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    padding: 72px 32px;
+  }
+`
+
+const QuoteText = styled.p`
+  font-family: ${({ theme }) => theme.fonts.serif};
+  font-size: clamp(28px, 4vw, 52px);
+  font-style: italic;
+  font-weight: 400;
+  color: #ffffff;
+  opacity: 0.9;
+  margin: 0;
+  line-height: 1.3;
 `
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function EventsPage() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [view, setView] = useState<'list' | 'month' | 'day'>('list')
+  const [searchTerm] = useState('')
+  const [view, setView] = useState<'list' | 'month'>('list')
 
-  // Group events by month
-  const groupedEvents = useMemo(() => {
-    const filtered = EVENTS.filter((event) =>
-      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.category.toLowerCase().includes(searchTerm.toLowerCase())
+  const allEvents = useMemo(() => {
+    return EVENTS.filter(
+      (e) =>
+        e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        e.category.toLowerCase().includes(searchTerm.toLowerCase()),
     ).sort((a, b) => a.date.getTime() - b.date.getTime())
-
-    const grouped: { [key: string]: ChurchEvent[] } = {}
-    filtered.forEach((event) => {
-      const monthYear = event.date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-      if (!grouped[monthYear]) grouped[monthYear] = []
-      grouped[monthYear].push(event)
-    })
-    return grouped
   }, [searchTerm])
-
-  const formatDate = (date: Date) => {
-    const day = date.toLocaleDateString('en-US', { weekday: 'short' })
-    const num = date.getDate()
-    return { day, num }
-  }
 
   return (
     <PageWrapper>
-      {/* Main Content */}
+      {/* Hero */}
+      <HeroSection>
+        <HeroOverlay />
+        <HeroContent>
+          <HeroHeading>Events</HeroHeading>
+          <HeroSubtitle>
+            We seek to actively engage our community with fellowship and love.
+            Below you will find a list of upcoming events that you can attend,
+            volunteer, and share with others.
+          </HeroSubtitle>
+        </HeroContent>
+      </HeroSection>
+
+      {/* Content */}
       <ContentSection>
-        {/* Toolbar */}
-        <Toolbar>
-          <SearchBar>
-            <svg viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search for events"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </SearchBar>
+        <ListHeader>
+          <ListTitle>Upcoming Events</ListTitle>
+          <ToggleGroup>
+            <ToggleBtn $active={view === 'list'} onClick={() => setView('list')} aria-label="List view">
+              <svg viewBox="0 0 24 24">
+                <line x1="8" y1="6" x2="21" y2="6" />
+                <line x1="8" y1="12" x2="21" y2="12" />
+                <line x1="8" y1="18" x2="21" y2="18" />
+                <line x1="3" y1="6" x2="3.01" y2="6" />
+                <line x1="3" y1="12" x2="3.01" y2="12" />
+                <line x1="3" y1="18" x2="3.01" y2="18" />
+              </svg>
+            </ToggleBtn>
+            <ToggleBtn $active={view === 'month'} onClick={() => setView('month')} aria-label="Month view">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </ToggleBtn>
+          </ToggleGroup>
+        </ListHeader>
 
-          <ViewToggles>
-            <FindEventsBtn>Find Events</FindEventsBtn>
-            <ToggleBtn $active={view === 'list'} onClick={() => setView('list')}>List</ToggleBtn>
-            <ToggleBtn $active={view === 'month'} onClick={() => setView('month')}>Month</ToggleBtn>
-            <ToggleBtn $active={view === 'day'} onClick={() => setView('day')}>Day</ToggleBtn>
-          </ViewToggles>
-        </Toolbar>
+        <HR />
 
-        {/* Date Header */}
-        <DateHeader>
-          <DateNav>
-            <NavBtn>
-              <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
-            </NavBtn>
-            <NavBtn>
-              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
-            </NavBtn>
-          </DateNav>
+        {allEvents.map((event) => {
+          const imgSrc = EVENT_IMAGES[event.id]
+          const meta = [event.location, event.time].filter(Boolean).join(' · ')
 
-          <DateRange>
-            <button>Today</button>
-            <span>Now – August 18</span>
-          </DateRange>
-        </DateHeader>
+          return (
+            <EventRow key={event.id}>
+              <DateCol>
+                <MonthAbbr>{MONTH_ABBR[event.date.getMonth()]}</MonthAbbr>
+                <DayNumber>{event.date.getDate()}</DayNumber>
+              </DateCol>
 
-        {/* Events Timeline */}
-        <EventsTimeline>
-          {Object.entries(groupedEvents).map(([monthYear, events]) => (
-            <MonthGroup key={monthYear}>
-              <MonthLabel>{monthYear}</MonthLabel>
-              <EventsList>
-                {events.map((event) => {
-                  const { day, num } = formatDate(event.date)
-                  return (
-                    <EventCard key={event.id}>
-                      <DayBadge>
-                        <span>{day}</span>
-                        <span>{num}</span>
-                      </DayBadge>
-                      <EventContent>
-                        <EventMeta>
-                          <span>
-                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            {event.time}
-                          </span>
-                          <CategoryTag $color={event.categoryColor}>{event.category}</CategoryTag>
-                          {event.isRecurring && <span style={{ color: '#888' }}>● Recurring</span>}
-                        </EventMeta>
-                        <EventTitle>{event.title}</EventTitle>
-                        <EventDesc>{event.description}</EventDesc>
-                        {event.location && (
-                          <EventMeta style={{ marginTop: 4 }}>
-                            <span>
-                              <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                              {event.location}
-                            </span>
-                          </EventMeta>
-                        )}
-                      </EventContent>
-                    </EventCard>
-                  )
-                })}
-              </EventsList>
-            </MonthGroup>
-          ))}
-        </EventsTimeline>
+              <ThumbCol>
+                {imgSrc
+                  ? <Thumbnail src={imgSrc} alt={event.title} loading="lazy" />
+                  : <ThumbPlaceholder $color={event.categoryColor} />}
+              </ThumbCol>
+
+              <InfoCol>
+                <EventTitle>{event.title}</EventTitle>
+                {meta && <EventMeta>{meta}</EventMeta>}
+                <EventDesc>{event.description}</EventDesc>
+                <ViewLink tabIndex={0} role="button">View Event Details →</ViewLink>
+              </InfoCol>
+            </EventRow>
+          )
+        })}
+
+        <PrevRow tabIndex={0} role="button" aria-label="Previous events">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" />
+            <polyline points="12 8 8 12 12 16" />
+            <line x1="16" y1="12" x2="8" y2="12" />
+          </svg>
+          <span>Previous Events</span>
+        </PrevRow>
       </ContentSection>
+
+      {/* Closing Banner */}
+      <ClosingBanner>
+        <QuoteText>Connecting our community to Christ</QuoteText>
+      </ClosingBanner>
     </PageWrapper>
   )
 }

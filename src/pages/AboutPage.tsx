@@ -1,5 +1,6 @@
 import styled, { keyframes } from 'styled-components'
 import AboutCanvas from '../components/AboutCanvas'
+import { Icon } from '@iconify/react'
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(24px); }
@@ -18,7 +19,7 @@ const HeroSection = styled.section`
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: linear-gradient(160deg, #f0f4ee 0%, #fafaf8 60%, #f5f3ed 100%);
+  background: #000000;
 `
 
 const HeroContent = styled.div`
@@ -43,7 +44,7 @@ const HeroTitle = styled.h1`
   font-family: ${({ theme }) => theme.fonts.serif};
   font-size: clamp(36px, 5vw, 64px);
   font-weight: 500;
-  color: ${({ theme }) => theme.colors.accentDark};
+  color: #ffffff;
   letter-spacing: -0.02em;
   line-height: 1.1;
   margin-bottom: 20px;
@@ -53,9 +54,9 @@ const HeroSub = styled.p`
   font-family: ${({ theme }) => theme.fonts.sans};
   font-size: 17px;
   font-weight: 300;
-  color: ${({ theme }) => theme.colors.textMuted};
+  color: rgba(255, 255, 255, 0.72);
   line-height: 1.75;
-  max-width: 540px;
+  max-width: 480px;
   margin: 0 auto;
 `
 
@@ -141,8 +142,21 @@ const BeliefCard = styled.div`
 `
 
 const BeliefIcon = styled.div`
-  font-size: 28px;
+  width: 44px;
+  height: 44px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.colors.bg};
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 16px;
+  flex-shrink: 0;
+
+  svg {
+    width: 24px;
+    height: 24px;
+    color: #1DA1F2;
+  }
 `
 
 const BeliefTitle = styled.h3`
@@ -164,32 +178,32 @@ const BeliefText = styled.p`
 
 const beliefs = [
   {
-    icon: '✝️',
+    icon: 'ph:cross-bold',
     title: 'The Trinity',
     text: 'Adventists believe a Trinity of three persons — the Father, the Son, and the Holy Spirit — make up one God.',
   },
   {
-    icon: '🕊️',
+    icon: 'ph:hands-praying-bold',
     title: 'Salvation',
     text: 'Jesus came to earth, lived a sinless life, and was crucified for the sins of the world, winning victory for everyone through His resurrection.',
   },
   {
-    icon: '📖',
+    icon: 'ph:bible-bold',
     title: 'Scripture',
     text: 'The Bible is the inspired word of God and the rule of faith and practice for Seventh-day Adventists.',
   },
   {
-    icon: '🌟',
+    icon: 'ph:cloud-sun-bold',
     title: 'Second Coming',
     text: 'Jesus promised to return to earth a second time to complete His plan of salvation and take His people to heaven.',
   },
   {
-    icon: '🛐',
+    icon: 'ph:moon-stars-bold',
     title: 'Sabbath',
-    text: 'Adventists observe the seventh-day Sabbath (Saturday) as a day of rest, worship, and celebration of God\'s creation.',
+    text: "Adventists observe the seventh-day Sabbath (Saturday) as a day of rest, worship, and celebration of God's creation.",
   },
   {
-    icon: '❤️',
+    icon: 'ph:heart-bold',
     title: 'Wholeness',
     text: 'God is concerned with the quality of human life — how we live, eat, speak, think, and treat one another.',
   },
@@ -255,7 +269,9 @@ export default function AboutPage() {
           <BeliefsGrid>
             {beliefs.map((b) => (
               <BeliefCard key={b.title}>
-                <BeliefIcon>{b.icon}</BeliefIcon>
+                <BeliefIcon>
+                  <Icon icon={b.icon} width={24} height={24} color="#1DA1F2" />
+                </BeliefIcon>
                 <BeliefTitle>{b.title}</BeliefTitle>
                 <BeliefText>{b.text}</BeliefText>
               </BeliefCard>
