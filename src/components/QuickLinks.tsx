@@ -105,6 +105,8 @@ const CardLabel = styled.span`
   pointer-events: none;
 `
 
+import ministriesImg from '../images/Ministries.jpeg'
+
 // ── Data ──────────────────────────────────────────────────────────────────────
 
 const cards = [
@@ -121,7 +123,7 @@ const cards = [
   {
     label: 'Ministries',
     to: '/ministries/youth',
-    image: 'https://images.unsplash.com/photo-1476725994324-6f756b28af53?w=900&q=80',
+    image: ministriesImg,
   },
 ]
 
