@@ -36,37 +36,37 @@ export default function AboutCanvas() {
     dir.position.set(5, 5, 5)
     scene.add(dir)
 
-    // ── Wireframe icosahedron — white ────────────────────────────────────────
+    // ── Wireframe icosahedron — black ────────────────────────────────────────
     const icoGeo = new THREE.IcosahedronGeometry(1.6, 1)
     const icoMat = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
+      color: 0x000000,
       wireframe: true,
       transparent: true,
-      opacity: 0.35,
+      opacity: 0.22,
     })
     const ico = new THREE.Mesh(icoGeo, icoMat)
     scene.add(ico)
 
-    // ── Inner sphere — dark grey, barely visible ─────────────────────────────
+    // ── Inner sphere — light grey ─────────────────────────────
     const sphereGeo = new THREE.SphereGeometry(0.95, 48, 48)
     const sphereMat = new THREE.MeshStandardMaterial({
-      color: 0x222222,
+      color: 0xf5f5f5,
       metalness: 0.0,
       roughness: 1.0,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.65,
     })
     const sphere = new THREE.Mesh(sphereGeo, sphereMat)
     scene.add(sphere)
 
-    // ── Gold orbit ring ──────────────────────────────────────────────────────
+    // ── Green orbit ring ──────────────────────────────────────────────────────
     const ringGeo = new THREE.TorusGeometry(2.2, 0.014, 12, 140)
     const ringMat = new THREE.MeshStandardMaterial({
-      color: 0x7dd3fc,
-      metalness: 0.9,
-      roughness: 0.15,
+      color: 0x4a6741,
+      metalness: 0.8,
+      roughness: 0.2,
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.65,
     })
     const ring = new THREE.Mesh(ringGeo, ringMat)
     ring.rotation.x = Math.PI / 2.5
@@ -83,10 +83,10 @@ export default function AboutCanvas() {
     const starGeo = new THREE.BufferGeometry()
     starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3))
     const starMat = new THREE.PointsMaterial({
-      color: 0xffffff,
+      color: 0x000000,
       size: 0.055,
       transparent: true,
-      opacity: 0.75,
+      opacity: 0.28,
       sizeAttenuation: true,
     })
     const stars = new THREE.Points(starGeo, starMat)

@@ -2,7 +2,7 @@ import MinistryLayout from '../components/MinistryLayout'
 
 const programs = [
   'Cradle Roll — nurturing infants and toddlers in the faith',
-  'Kindergarten Sabbath School every Saturday at 10:30 am',
+  'Kindergarten Sabbath School every Saturday at 09:00 am',
   'Primary division Bible lessons and Scripture memorisation',
   'Junior Sabbath School for ages 10–13',
   'Vacation Bible School held annually during school holidays',

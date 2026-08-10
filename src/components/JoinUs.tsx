@@ -234,7 +234,7 @@ const Arrow = styled.span`
 `
 
 const services = [
-  { name: 'Sabbath School', day: 'Every Saturday', time: '10:30 am' },
+  { name: 'Sabbath School', day: 'Every Saturday', time: '09:00 am' },
   { name: 'Worship Service', day: 'Every Saturday', time: '11:30 am' },
 ]
 
@@ -252,9 +252,9 @@ export default function JoinUs() {
             family. Please join us for Bible study, worship, and prayer.
           </Body>
           <PastorTag>
-            <PastorAvatar>W</PastorAvatar>
+            <PastorAvatar>N</PastorAvatar>
             <PastorInfo>
-              <p>Pastor Waren Muir</p>
+              <p>Pastor Ngwenya</p>
               <p>Emganwini Main SDA Church</p>
             </PastorInfo>
           </PastorTag>

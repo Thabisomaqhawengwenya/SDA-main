@@ -174,7 +174,7 @@ export default function WorldwideChurch() {
           <Divider />
 
           <div>
-            <PastorName>Pastor Waren Muir</PastorName>
+            <PastorName>Pastor Ngwenya</PastorName>
             <PastorChurch>Emganwini Main SDA Church</PastorChurch>
           </div>
 
@@ -186,7 +186,7 @@ export default function WorldwideChurch() {
 
           <ServiceBlock>
             <ServiceHeading>Service times:</ServiceHeading>
-            <ServiceLine><strong>Sabbath School:</strong> 10:30 am</ServiceLine>
+            <ServiceLine><strong>Sabbath School:</strong> 09:00 am</ServiceLine>
             <ServiceLine><strong>Worship Service:</strong> 11:30 am</ServiceLine>
           </ServiceBlock>
 

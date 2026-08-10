@@ -203,7 +203,7 @@ export default function ContactPage() {
             </InfoIcon>
             <InfoLabel>Service Times</InfoLabel>
             <InfoValue>Every Saturday</InfoValue>
-            <InfoSub>Sabbath School 10:30 am · Worship 11:30 am</InfoSub>
+            <InfoSub>Sabbath School 09:00 am · Worship 11:30 am</InfoSub>
           </InfoCard>
         </InfoGrid>
       </InfoStrip>

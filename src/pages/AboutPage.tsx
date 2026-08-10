@@ -19,7 +19,7 @@ const HeroSection = styled.section`
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: #000000;
+  background: #ffffff;
 `
 
 const HeroContent = styled.div`
@@ -44,7 +44,7 @@ const HeroTitle = styled.h1`
   font-family: ${({ theme }) => theme.fonts.serif};
   font-size: clamp(36px, 5vw, 64px);
   font-weight: 500;
-  color: #ffffff;
+  color: #1DA1F2;
   letter-spacing: -0.02em;
   line-height: 1.1;
   margin-bottom: 20px;
@@ -54,7 +54,7 @@ const HeroSub = styled.p`
   font-family: ${({ theme }) => theme.fonts.sans};
   font-size: 17px;
   font-weight: 300;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(0, 0, 0, 0.72);
   line-height: 1.75;
   max-width: 480px;
   margin: 0 auto;
@@ -121,7 +121,7 @@ const BeliefsGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2px;
-  background: ${({ theme }) => theme.colors.border};
+  background: rgba(255, 255, 255, 0.08);
   border-radius: ${({ theme }) => theme.radius.md};
   overflow: hidden;
   margin-top: 48px;
@@ -132,12 +132,12 @@ const BeliefsGrid = styled.div`
 `
 
 const BeliefCard = styled.div`
-  background: ${({ theme }) => theme.colors.surface};
+  background: #111111;
   padding: 40px;
   transition: background 0.25s ease;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.offWhite};
+    background: #1a1a1a;
   }
 `
 
@@ -145,7 +145,7 @@ const BeliefIcon = styled.div`
   width: 44px;
   height: 44px;
   border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.colors.bg};
+  background: #222222;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -163,7 +163,7 @@ const BeliefTitle = styled.h3`
   font-family: ${({ theme }) => theme.fonts.serif};
   font-size: 20px;
   font-weight: 500;
-  color: ${({ theme }) => theme.colors.accentDark};
+  color: #ffffff;
   margin-bottom: 12px;
   letter-spacing: -0.01em;
 `
@@ -172,7 +172,7 @@ const BeliefText = styled.p`
   font-family: ${({ theme }) => theme.fonts.sans};
   font-size: 14px;
   font-weight: 300;
-  color: ${({ theme }) => theme.colors.textMuted};
+  color: rgba(255, 255, 255, 0.7);
   line-height: 1.8;
 `
 

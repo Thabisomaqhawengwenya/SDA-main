@@ -247,6 +247,15 @@ const Dropdown = styled.div`
   transform: translateY(-6px);
   transition: opacity 0.2s ease, transform 0.2s ease;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 0;
+    right: 0;
+    height: 8px;
+  }
 `
 
 const DropdownItem = styled(Link)`

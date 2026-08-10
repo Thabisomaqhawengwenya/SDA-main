@@ -84,41 +84,7 @@ const PageWrapper = styled.main`
   min-height: 100vh;
 `
 
-// ── Top logo bar ──────────────────────────────────────────────────────────────
 
-const TopBar = styled.div`
-  background: #1a3a5c;
-  padding: 10px 24px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-`
-
-const TopBarLogo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-`
-
-const TopBarText = styled.div`
-  p:first-child {
-    font-family: ${({ theme }) => theme.fonts.sans};
-    font-size: 13px;
-    font-weight: 700;
-    color: #ffffff;
-    margin: 0;
-    line-height: 1.2;
-  }
-  p:last-child {
-    font-family: ${({ theme }) => theme.fonts.sans};
-    font-size: 9px;
-    font-weight: 400;
-    color: rgba(255,255,255,0.65);
-    margin: 0;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-`
 
 // ── Church name header ────────────────────────────────────────────────────────
 
@@ -518,16 +484,6 @@ export default function GivingPage() {
 
   return (
     <PageWrapper>
-      {/* Top blue bar */}
-      <TopBar>
-        <TopBarLogo>
-          <Icon icon="ph:cross-bold" width={22} color="#ffffff" />
-          <TopBarText>
-            <p>AdventistGiving</p>
-            <p>North American Division</p>
-          </TopBarText>
-        </TopBarLogo>
-      </TopBar>
 
       {/* Church name */}
       <ChurchHeader>
