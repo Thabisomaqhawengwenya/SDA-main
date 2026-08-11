@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import styled, { keyframes } from 'styled-components'
 import JoinUs from '../components/JoinUs'
 
@@ -144,9 +145,213 @@ const InfoSub = styled.p`
   line-height: 1.6;
 `
 
+// ── Contact Form Styled Components ───────────────────────────────────────────
+const FormSection = styled.section`
+  padding: 64px 48px 96px;
+  background: ${({ theme }) => theme.colors.surface};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    padding: 48px 24px 72px;
+  }
+`
+
+const FormContainer = styled.div`
+  max-width: 600px;
+  margin: 0 auto;
+  background: ${({ theme }) => theme.colors.bg};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.lg};
+  padding: 48px;
+  box-shadow: ${({ theme }) => theme.shadows.sm};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: 28px 24px;
+  }
+`
+
+const FormTitle = styled.h2`
+  font-family: ${({ theme }) => theme.fonts.serif};
+  font-size: 26px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.accentDark};
+  margin: 0 0 8px;
+  text-align: center;
+`
+
+const FormSubtitle = styled.p`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  margin: 0 0 32px;
+  text-align: center;
+  line-height: 1.5;
+`
+
+const FormFieldGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+`
+
+const FormLabel = styled.label`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.text};
+`
+
+const FormInput = styled.input`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.text};
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  padding: 12px 16px;
+  outline: none;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.accent};
+  }
+`
+
+const FormTextArea = styled.textarea`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.text};
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.sm};
+  padding: 12px 16px;
+  outline: none;
+  min-height: 120px;
+  resize: vertical;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.accent};
+  }
+`
+
+const SubmitButton = styled.button`
+  width: 100%;
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.accent};
+  border: none;
+  border-radius: ${({ theme }) => theme.radius.full};
+  padding: 14px 28px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.accentLight};
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+`
+
+const ErrorMessage = styled.p`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 12px;
+  color: #d32f2f;
+  margin: 2px 0 0;
+`
+
+const SuccessContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 0;
+`
+
+const SuccessCheck = styled.div`
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #e8f5e9;
+  color: #2e7d32;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+
+  svg {
+    width: 28px;
+    height: 28px;
+  }
+`
+
+const SuccessHeading = styled.h3`
+  font-family: ${({ theme }) => theme.fonts.serif};
+  font-size: 22px;
+  color: ${({ theme }) => theme.colors.accentDark};
+  margin: 0 0 10px;
+`
+
+const SuccessText = styled.p`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  line-height: 1.6;
+  margin: 0;
+`
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function ContactPage() {
+  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' })
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isSubmitted, setIsSubmitted] = useState(false)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }))
+    }
+  }
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {}
+    if (!formData.name.trim()) newErrors.name = 'Name is required'
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required'
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address'
+    }
+    if (!formData.subject.trim()) newErrors.subject = 'Subject is required'
+    if (!formData.message.trim()) {
+      newErrors.message = 'Message is required'
+    } else if (formData.message.trim().length < 10) {
+      newErrors.message = 'Message must be at least 10 characters long'
+    }
+    return newErrors
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const validationErrors = validate()
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
+    } else {
+      setIsSubmitted(true)
+    }
+  }
+
   return (
     <PageWrapper>
       {/* Hero */}
@@ -207,6 +412,85 @@ export default function ContactPage() {
           </InfoCard>
         </InfoGrid>
       </InfoStrip>
+
+      {/* Contact Form Section */}
+      <FormSection>
+        <FormContainer>
+          {isSubmitted ? (
+            <SuccessContainer>
+              <SuccessCheck>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </SuccessCheck>
+              <SuccessHeading>Message Sent!</SuccessHeading>
+              <SuccessText>
+                Thank you for reaching out to us. We have received your message and will respond as soon as possible.
+              </SuccessText>
+            </SuccessContainer>
+          ) : (
+            <form onSubmit={handleSubmit} noValidate>
+              <FormTitle>Send a Message</FormTitle>
+              <FormSubtitle>
+                Have a question or want to get in touch? Fill out the form below and our team will get back to you.
+              </FormSubtitle>
+              
+              <FormFieldGroup>
+                <FormLabel htmlFor="name">Name</FormLabel>
+                <FormInput
+                  id="name"
+                  name="name"
+                  type="text"
+                  placeholder="Your Name"
+                  value={formData.name}
+                  onChange={handleChange}
+                />
+                {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
+              </FormFieldGroup>
+
+              <FormFieldGroup>
+                <FormLabel htmlFor="email">Email Address</FormLabel>
+                <FormInput
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="your.email@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+                {errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
+              </FormFieldGroup>
+
+              <FormFieldGroup>
+                <FormLabel htmlFor="subject">Subject</FormLabel>
+                <FormInput
+                  id="subject"
+                  name="subject"
+                  type="text"
+                  placeholder="What is this about?"
+                  value={formData.subject}
+                  onChange={handleChange}
+                />
+                {errors.subject && <ErrorMessage>{errors.subject}</ErrorMessage>}
+              </FormFieldGroup>
+
+              <FormFieldGroup>
+                <FormLabel htmlFor="message">Message</FormLabel>
+                <FormTextArea
+                  id="message"
+                  name="message"
+                  placeholder="Type your message here..."
+                  value={formData.message}
+                  onChange={handleChange}
+                />
+                {errors.message && <ErrorMessage>{errors.message}</ErrorMessage>}
+              </FormFieldGroup>
+
+              <SubmitButton type="submit">Submit Message</SubmitButton>
+            </form>
+          )}
+        </FormContainer>
+      </FormSection>
 
       {/* Join Us section (moved from home) */}
       <JoinUs />

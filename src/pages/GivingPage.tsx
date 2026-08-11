@@ -464,10 +464,116 @@ const ContinueBtn = styled.button`
   &:hover { background: #4a7bc5; }
 `
 
+// ── Success Modal Styled Components ──────────────────────────────────────────
+const SuccessModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+`
+
+const SuccessModalContent = styled.div`
+  background: #ffffff;
+  border-radius: 12px;
+  max-width: 480px;
+  width: 100%;
+  padding: 32px;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  text-align: center;
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: 24px;
+  }
+`
+
+const SuccessIconWrap = styled.div`
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #e0f2fe;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+
+  svg {
+    width: 32px;
+    height: 32px;
+  }
+`
+
+const SuccessTitle = styled.h3`
+  font-family: ${({ theme }) => theme.fonts.serif};
+  font-size: 22px;
+  font-weight: 700;
+  color: #333333;
+  margin: 0 0 12px;
+`
+
+const SuccessMessage = styled.p`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 14px;
+  color: #555555;
+  line-height: 1.6;
+  margin-bottom: 24px;
+`
+
+const BreakdownTable = styled.div`
+  border: 1px solid #e8e6e0;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  text-align: left;
+`
+
+const BreakdownRow = styled.div<{ $isTotal?: boolean }>`
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: ${({ $isTotal }) => ($isTotal ? '#f7f9fc' : '#ffffff')};
+  border-bottom: ${({ $isTotal }) => ($isTotal ? 'none' : '1px solid #e8e6e0')};
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 13px;
+  font-weight: ${({ $isTotal }) => ($isTotal ? '700' : '400')};
+  color: #333333;
+
+  &:last-child {
+    border-bottom: none;
+  }
+`
+
+const CloseSuccessBtn = styled.button`
+  width: 100%;
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: #5b8dd9;
+  border: none;
+  border-radius: 4px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #4a7bc5;
+  }
+`
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function GivingPage() {
   const [amounts, setAmounts] = useState<Record<string, string>>({})
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
   const set = (id: string, val: string) =>
     setAmounts((prev) => ({ ...prev, [id]: val }))
@@ -481,6 +587,21 @@ export default function GivingPage() {
 
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+  const grandTotal = CATEGORIES.reduce((s, c) => s + catTotal(c), 0)
+
+  const handleContinue = () => {
+    if (grandTotal <= 0) {
+      alert('Please enter a donation amount before continuing.')
+      return
+    }
+    setShowSuccessModal(true)
+  }
+
+  const handleCloseSuccess = () => {
+    setShowSuccessModal(false)
+    setAmounts({}) // Clear form on success close
+  }
 
   return (
     <PageWrapper>
@@ -546,41 +667,71 @@ export default function GivingPage() {
           ))}
         </LeftCol>
 
-        {/* ── Right sidebar — one summary card per category ── */}
+        {/* ── Right sidebar — Consolidated Summary ── */}
         <RightCol>
-          {CATEGORIES.map((cat, idx) => {
-            // sidebar shows categories from current down
-            const visible = CATEGORIES.slice(idx)
-            const total = visible.reduce((s, c) => s + catTotal(c), 0)
+          <SummaryCard>
+            <SummaryTitle><p>Giving Summary</p></SummaryTitle>
 
-            return (
-              <SummaryCard key={cat.id}>
-                <SummaryTitle><p>Jump to Category</p></SummaryTitle>
+            {CATEGORIES.map((c) => (
+              <SummaryRow key={c.id} onClick={() => scrollTo(c.id)}
+                style={{ cursor: 'pointer' }}>
+                <SummaryRowLeft>
+                  <SummaryIcon><Icon icon={c.icon} width={14} /></SummaryIcon>
+                  <SummaryLabel>{c.label}</SummaryLabel>
+                </SummaryRowLeft>
+                <SummaryAmt>${fmt(catTotal(c))}</SummaryAmt>
+              </SummaryRow>
+            ))}
 
-                {visible.map((c) => (
-                  <SummaryRow key={c.id} onClick={() => scrollTo(c.id)}
-                    style={{ cursor: 'pointer' }}>
-                    <SummaryRowLeft>
-                      <SummaryIcon><Icon icon={c.icon} width={14} /></SummaryIcon>
-                      <SummaryLabel>{c.label}</SummaryLabel>
-                    </SummaryRowLeft>
-                    <SummaryAmt>${fmt(catTotal(c))}</SummaryAmt>
-                  </SummaryRow>
-                ))}
+            <TotalRow>
+              <p>Grand Total (USD):</p>
+              <strong>${fmt(grandTotal)}</strong>
+            </TotalRow>
 
-                <TotalRow>
-                  <p>Current Total (USD):</p>
-                  <strong>${fmt(total)}</strong>
-                </TotalRow>
-
-                <ContinueBtn type="button">
-                  Continue →
-                </ContinueBtn>
-              </SummaryCard>
-            )
-          })}
+            <ContinueBtn type="button" onClick={handleContinue}>
+              Continue →
+            </ContinueBtn>
+          </SummaryCard>
         </RightCol>
       </Layout>
+
+      {/* Checkout Success Modal */}
+      {showSuccessModal && (
+        <SuccessModalOverlay onClick={handleCloseSuccess}>
+          <SuccessModalContent onClick={(e) => e.stopPropagation()}>
+            <SuccessIconWrap>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </SuccessIconWrap>
+            <SuccessTitle>Thank You for Giving!</SuccessTitle>
+            <SuccessMessage>
+              Your generous contribution has been processed successfully. Here is a summary of your donation:
+            </SuccessMessage>
+
+            <BreakdownTable>
+              {CATEGORIES.map((c) => {
+                const total = catTotal(c)
+                if (total <= 0) return null
+                return (
+                  <BreakdownRow key={c.id}>
+                    <span>{c.label}</span>
+                    <span>${fmt(total)}</span>
+                  </BreakdownRow>
+                )
+              })}
+              <BreakdownRow $isTotal>
+                <span>Total Donation</span>
+                <span>${fmt(grandTotal)}</span>
+              </BreakdownRow>
+            </BreakdownTable>
+
+            <CloseSuccessBtn onClick={handleCloseSuccess}>
+              Close & Return
+            </CloseSuccessBtn>
+          </SuccessModalContent>
+        </SuccessModalOverlay>
+      )}
     </PageWrapper>
   )
 }
