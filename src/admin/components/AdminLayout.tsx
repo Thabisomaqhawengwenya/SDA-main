@@ -14,18 +14,18 @@ const NAV = [
     ],
   },
   {
-    group: 'CONTENT',
+    group: 'EVENTS',
     items: [
       { label: 'Announcements', path: '/admin/announcements', icon: <BellIcon /> },
       { label: 'Events',        path: '/admin/events',        icon: <CalendarIcon /> },
       { label: 'Sermons',       path: '/admin/sermons',       icon: <PlayIcon /> },
-      { label: 'Livestreams',   path: '/admin/livestreams',   icon: <VideoIcon /> },
       { label: 'Ministries',    path: '/admin/ministries',    icon: <UsersIcon /> },
     ],
   },
   {
     group: 'CHURCH',
     items: [
+      { label: 'Livestreams',     path: '/admin/livestreams',     icon: <VideoIcon /> },
       { label: 'Services',        path: '/admin/services',        icon: <ClockIcon /> },
       { label: 'Leadership',      path: '/admin/leadership',      icon: <StarIcon /> },
       { label: 'Members',         path: '/admin/members',         icon: <UserIcon /> },
