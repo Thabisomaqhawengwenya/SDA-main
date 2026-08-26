@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Admin dashboard (private — not tracked on GitHub)
+src/admin/
