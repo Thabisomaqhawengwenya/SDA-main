@@ -16,10 +16,9 @@ const NAV = [
   {
     group: 'EVENTS',
     items: [
-      { label: 'Announcements', path: '/admin/announcements', icon: <BellIcon /> },
-      { label: 'Events',        path: '/admin/events',        icon: <CalendarIcon /> },
-      { label: 'Sermons',       path: '/admin/sermons',       icon: <PlayIcon /> },
-      { label: 'Ministries',    path: '/admin/ministries',    icon: <UsersIcon /> },
+      { label: 'Events',     path: '/admin/events',     icon: <CalendarIcon /> },
+      { label: 'Sermons',    path: '/admin/sermons',    icon: <PlayIcon /> },
+      { label: 'Ministries', path: '/admin/ministries', icon: <UsersIcon /> },
     ],
   },
   {
@@ -36,7 +35,6 @@ const NAV = [
   {
     group: 'COMMUNICATION',
     items: [
-      { label: 'Messages',      path: '/admin/messages',      icon: <MailIcon />, badge: mockMessages.filter(m => m.status === 'new').length },
       { label: 'Notifications', path: '/admin/notifications', icon: <AlertIcon /> },
     ],
   },
@@ -602,7 +600,7 @@ export default function AdminLayout() {
               {newMsgCount > 0 && <NotifDot />}
             </IconBtn>
 
-            <IconBtn as={Link} to="/admin/notifications" title="Notifications">
+            <IconBtn as={Link} to="/admin/announcements" title="Announcements">
               <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
               {(newMsgCount + newPrayerCount) > 0 && <NotifDot />}
             </IconBtn>
@@ -653,7 +651,6 @@ export default function AdminLayout() {
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
 function GridIcon()     { return <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> }
-function BellIcon()     { return <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> }
 function CalendarIcon() { return <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> }
 function PlayIcon()     { return <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg> }
 function VideoIcon()    { return <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg> }
