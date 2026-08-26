@@ -7,6 +7,7 @@ import {
   ModalOverlay, ModalBox, ModalHead, ModalTitle, ModalBody, ModalFooter, CloseBtn,
   FormGroup, FormGrid, Label, Input, Textarea, Select, EmptyState, ConfirmDialog, Toolbar, ToolbarLeft, ToolbarRight, SearchWrap, SearchInput,
 } from '../components/ui'
+import ImageUploader from '../components/ImageUploader'
 import { mockEvents } from '../mockData'
 import type { AdminEvent, EventStatus } from '../adminTypes'
 
@@ -121,7 +122,10 @@ export default function EventsAdminPage() {
               <Tbody>
                 {filtered.map(ev => (
                   <Tr key={ev.id}>
-                    <Td><TitleCell><CategoryDot $color={ev.categoryColor}/>{ev.title}</TitleCell></Td>
+                    <Td><TitleCell>
+                      {ev.image && <img src={ev.image} alt="" style={{width:36,height:28,objectFit:'cover',borderRadius:4,marginRight:10,flexShrink:0}}/>}
+                      <CategoryDot $color={ev.categoryColor}/>{ev.title}
+                    </TitleCell></Td>
                     <Td>{new Date(ev.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</Td>
                     <Td>{ev.time}</Td>
                     <Td>{ev.location}</Td>
@@ -184,6 +188,12 @@ export default function EventsAdminPage() {
               <FormGroup><Label>Description</Label>
                 <Textarea placeholder="Event description…" value={form.description||''} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/>
               </FormGroup>
+              <ImageUploader
+                label="Event Image"
+                value={form.image||''}
+                onChange={url=>setForm(f=>({...f,image:url}))}
+                aspectRatio="16 / 7"
+              />
             </ModalBody>
             <ModalFooter>
               <Btn $variant="ghost" onClick={()=>setShowModal(false)}>Cancel</Btn>

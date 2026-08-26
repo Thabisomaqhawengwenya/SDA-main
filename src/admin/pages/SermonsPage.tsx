@@ -8,6 +8,7 @@ import {
   FormGroup, FormGrid, Label, Input, Textarea, Select, EmptyState, ConfirmDialog,
   Toolbar, ToolbarLeft, ToolbarRight, SearchWrap, SearchInput,
 } from '../components/ui'
+import ImageUploader from '../components/ImageUploader'
 import { mockSermons } from '../mockData'
 import type { Sermon, PublishStatus } from '../adminTypes'
 
@@ -168,7 +169,12 @@ export default function SermonsPage() {
                 </FormGroup>
               </FormGrid>
               <FormGroup><Label>Video URL</Label><Input placeholder="https://youtube.com/…" value={form.videoUrl||''} onChange={e=>setForm(f=>({...f,videoUrl:e.target.value}))}/></FormGroup>
-              <FormGroup><Label>Thumbnail URL</Label><Input placeholder="https://…" value={form.thumbnail||''} onChange={e=>setForm(f=>({...f,thumbnail:e.target.value}))}/></FormGroup>
+              <ImageUploader
+                label="Sermon Thumbnail"
+                value={form.thumbnail||''}
+                onChange={url=>setForm(f=>({...f,thumbnail:url}))}
+                aspectRatio="16 / 9"
+              />
               <FormGroup><Label>Description</Label><Textarea value={form.description||''} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/></FormGroup>
             </ModalBody>
             <ModalFooter>
