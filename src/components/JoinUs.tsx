@@ -1,4 +1,5 @@
 import styled, { keyframes } from 'styled-components'
+import { Link } from 'react-router-dom'
 
 const shimmer = keyframes`
   0%   { background-position: -200% center; }
@@ -246,7 +247,7 @@ export default function JoinUs() {
       <Container>
         <Left>
           <Label>Come as you are</Label>
-          <Title>Join Us This Saturday</Title>
+          <Title><Link to="/contact" style={{ color: 'inherit', textDecoration: 'none' }}>Join Us This Saturday</Link></Title>
           <Body>
             We are a Christian community and would love to have you join our
             family. Please join us for Bible study, worship, and prayer.

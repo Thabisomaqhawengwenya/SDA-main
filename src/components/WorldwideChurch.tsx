@@ -181,7 +181,9 @@ export default function WorldwideChurch() {
           <Divider />
 
           <p style={{ fontFamily: 'inherit', fontSize: '14px', fontWeight: 400 }}>
-            Join Us This Saturday
+            <Link to="/contact" style={{ color: 'inherit', textDecoration: 'none' }}>
+              Join Us This Saturday
+            </Link>
           </p>
 
           <ServiceBlock>
