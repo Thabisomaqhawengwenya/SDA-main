@@ -71,18 +71,6 @@ const Headline = styled.h1`
   }
 `
 
-const SubText = styled.p`
-  font-family: ${({ theme }) => theme.fonts.sans};
-  font-size: clamp(15px, 1.8vw, 18px);
-  font-weight: 300;
-  color: rgba(255, 255, 255, 0.82);
-  line-height: 1.75;
-  max-width: 500px;
-  margin: 0 auto 40px;
-  animation: ${fadeUp} 0.7s ease both;
-  animation-delay: 0.4s;
-`
-
 // ── CTA group ─────────────────────────────────────────────────────────────────
 
 const CtaGroup = styled.div`
@@ -199,12 +187,7 @@ export default function Hero() {
         <Eyebrow>Emganwini, Bulawayo</Eyebrow>
         <Headline>
           Welcome to <em>Emganwini Main</em>
-          <br />SDA Church
         </Headline>
-        <SubText>
-          A Christian community transforming lives by connecting
-          our neighbors to Christ — through teaching, preaching, and healing.
-        </SubText>
 
         <CtaGroup>
           <PrimaryBtn href="/contact">Join Us This Saturday</PrimaryBtn>
