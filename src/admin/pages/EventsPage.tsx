@@ -37,7 +37,10 @@ export default function EventsAdminPage() {
 
   function openCreate() {
     setEditing(null)
-    setForm({ status: 'draft', categoryColor: '#3b82f6' })
+    const now = new Date()
+    const date = now.toISOString().split('T')[0]
+    const time = now.toTimeString().slice(0, 5)
+    setForm({ status: 'draft', categoryColor: '#3b82f6', date, time })
     setShowModal(true)
   }
 
