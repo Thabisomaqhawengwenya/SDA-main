@@ -194,6 +194,7 @@ export default function Footer() {
           <BottomLinks>
             <Link to="/about">About</Link>
             <a href="mailto:Connect@Emganwinisda.org">Contact</a>
+            <Link to="/admin" style={{ opacity: 0.35, fontSize: '11px' }}>Admin</Link>
           </BottomLinks>
         </Bottom>
       </Container>
