@@ -187,6 +187,7 @@ export default function Hero() {
         <Eyebrow>Emganwini, Bulawayo</Eyebrow>
         <Headline>
           Welcome to <em>Emganwini Main</em>
+          <br />SDA Church
         </Headline>
 
         <CtaGroup>
