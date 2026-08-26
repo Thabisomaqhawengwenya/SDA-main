@@ -20,6 +20,7 @@ import GivingPage from './pages/GivingPage'
 
 // Admin
 import AdminLayout from './admin/components/AdminLayout'
+import AdminGuard from './admin/components/AdminGuard'
 import DashboardPage from './admin/pages/DashboardPage'
 import EventsAdminPage from './admin/pages/EventsPage'
 import AnnouncementsPage from './admin/pages/AnnouncementsPage'
@@ -71,7 +72,7 @@ export default function App() {
           <Route path="/giving"               element={<PublicLayout><GivingPage /></PublicLayout>} />
 
           {/* ── Admin dashboard ── */}
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route path="/admin" element={<AdminGuard><AdminLayout /></AdminGuard>}>
             <Route index                  element={<DashboardPage />} />
             <Route path="announcements"   element={<AnnouncementsPage />} />
             <Route path="events"          element={<EventsAdminPage />} />
