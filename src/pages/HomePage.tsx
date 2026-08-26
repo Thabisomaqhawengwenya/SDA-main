@@ -1,6 +1,7 @@
 import styled from 'styled-components'
 import Hero from '../components/Hero'
 import FindUs from '../components/FindUs'
+import UpcomingEvents from '../components/UpcomingEvents'
 import Mission from '../components/Mission'
 import QuickLinks from '../components/QuickLinks'
 
@@ -13,6 +14,7 @@ export default function HomePage() {
     <Main>
       <Hero />
       <FindUs />
+      <UpcomingEvents />
       <Mission />
       <QuickLinks />
     </Main>

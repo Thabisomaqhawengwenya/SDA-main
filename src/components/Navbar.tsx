@@ -439,8 +439,8 @@ export default function Navbar() {
           <LogoLink to="/">
             <LogoImg src={sdaLogo} alt="SDA Church logo" />
             <LogoTextWrap>
-              <LogoLine1>Emganwini Main</LogoLine1>
-              <LogoLine2>SDA Church</LogoLine2>
+              <LogoLine1>Seventh-day Adventist</LogoLine1>
+              <LogoLine2>Emganwini Main</LogoLine2>
             </LogoTextWrap>
           </LogoLink>
 
