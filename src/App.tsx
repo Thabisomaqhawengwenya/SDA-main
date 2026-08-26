@@ -18,28 +18,79 @@ import CommunityOutreachPage from './pages/CommunityOutreachPage'
 import ContactPage from './pages/ContactPage'
 import GivingPage from './pages/GivingPage'
 
+// Admin
+import AdminLayout from './admin/components/AdminLayout'
+import DashboardPage from './admin/pages/DashboardPage'
+import EventsAdminPage from './admin/pages/EventsPage'
+import AnnouncementsPage from './admin/pages/AnnouncementsPage'
+import SermonsPage from './admin/pages/SermonsPage'
+import LivestreamsPage from './admin/pages/LivestreamsPage'
+import MinistriesPage from './admin/pages/MinistriesPage'
+import ServicesPage from './admin/pages/ServicesPage'
+import PrayerRequestsPage from './admin/pages/PrayerRequestsPage'
+import MessagesPage from './admin/pages/MessagesPage'
+import MembersPage from './admin/pages/MembersPage'
+import AdminGivingPage from './admin/pages/GivingPage'
+import LeadershipPage from './admin/pages/LeadershipPage'
+import AnalyticsPage from './admin/pages/AnalyticsPage'
+import UsersPage from './admin/pages/UsersPage'
+import ActivityLogPage from './admin/pages/ActivityLogPage'
+import NotificationsPage from './admin/pages/NotificationsPage'
+import SettingsPage from './admin/pages/SettingsPage'
+
+// Public layout wrapper — renders navbar/footer
+function PublicLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <ScrollToTop />
+      <Navbar />
+      {children}
+      <WorldwideChurch />
+      <Footer />
+    </>
+  )
+}
+
 export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <BrowserRouter>
-        <ScrollToTop />
-        <Navbar />
         <Routes>
-          <Route path="/"                       element={<HomePage />} />
-          <Route path="/about"                  element={<AboutPage />} />
-          <Route path="/calendar"               element={<EventsPage />} />
-          <Route path="/ministries/youth"       element={<YouthMinistryPage />} />
-          <Route path="/ministries/health"      element={<HealthMinistryPage />} />
-          <Route path="/ministries/prayer"      element={<PrayerMinistryPage />} />
-          <Route path="/ministries/women"       element={<WomensMinistryPage />} />
-          <Route path="/ministries/men"         element={<MensMinistryPage />} />
-          <Route path="/ministries/children"    element={<ChildrensMinistryPage />} />
-          <Route path="/ministries/community"   element={<CommunityOutreachPage />} />
-          <Route path="/contact"               element={<ContactPage />} />
-          <Route path="/giving"                element={<GivingPage />} />
+          {/* ── Public site ── */}
+          <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
+          <Route path="/about"                element={<PublicLayout><AboutPage /></PublicLayout>} />
+          <Route path="/calendar"             element={<PublicLayout><EventsPage /></PublicLayout>} />
+          <Route path="/ministries/youth"     element={<PublicLayout><YouthMinistryPage /></PublicLayout>} />
+          <Route path="/ministries/health"    element={<PublicLayout><HealthMinistryPage /></PublicLayout>} />
+          <Route path="/ministries/prayer"    element={<PublicLayout><PrayerMinistryPage /></PublicLayout>} />
+          <Route path="/ministries/women"     element={<PublicLayout><WomensMinistryPage /></PublicLayout>} />
+          <Route path="/ministries/men"       element={<PublicLayout><MensMinistryPage /></PublicLayout>} />
+          <Route path="/ministries/children"  element={<PublicLayout><ChildrensMinistryPage /></PublicLayout>} />
+          <Route path="/ministries/community" element={<PublicLayout><CommunityOutreachPage /></PublicLayout>} />
+          <Route path="/contact"              element={<PublicLayout><ContactPage /></PublicLayout>} />
+          <Route path="/giving"               element={<PublicLayout><GivingPage /></PublicLayout>} />
+
+          {/* ── Admin dashboard ── */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index                  element={<DashboardPage />} />
+            <Route path="announcements"   element={<AnnouncementsPage />} />
+            <Route path="events"          element={<EventsAdminPage />} />
+            <Route path="sermons"         element={<SermonsPage />} />
+            <Route path="livestreams"     element={<LivestreamsPage />} />
+            <Route path="ministries"      element={<MinistriesPage />} />
+            <Route path="services"        element={<ServicesPage />} />
+            <Route path="leadership"      element={<LeadershipPage />} />
+            <Route path="members"         element={<MembersPage />} />
+            <Route path="prayer-requests" element={<PrayerRequestsPage />} />
+            <Route path="giving"          element={<AdminGivingPage />} />
+            <Route path="messages"        element={<MessagesPage />} />
+            <Route path="notifications"   element={<NotificationsPage />} />
+            <Route path="analytics"       element={<AnalyticsPage />} />
+            <Route path="users"           element={<UsersPage />} />
+            <Route path="activity-log"    element={<ActivityLogPage />} />
+            <Route path="settings"        element={<SettingsPage />} />
+          </Route>
         </Routes>
-        <WorldwideChurch />
-        <Footer />
       </BrowserRouter>
     </ThemeProvider>
   )
