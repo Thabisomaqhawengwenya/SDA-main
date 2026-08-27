@@ -413,38 +413,6 @@ const ViewLink = styled.span`
   &:hover { opacity: 0.7; }
 `
 
-// ── Previous Events ───────────────────────────────────────────────────────────
-
-const PrevRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 44px 0 0;
-  cursor: pointer;
-
-  svg {
-    width: 20px;
-    height: 20px;
-    stroke: ${({ theme }) => theme.colors.textMuted};
-    fill: none;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  span {
-    font-family: ${({ theme }) => theme.fonts.sans};
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: ${({ theme }) => theme.colors.textMuted};
-  }
-
-  &:hover { opacity: 0.65; }
-`
-
 // ── Calendar Styled Components ───────────────────────────────────────────────
 const CalendarContainer = styled.div`
   margin-top: 24px;
@@ -682,6 +650,32 @@ const ModalDesc = styled.p`
   margin: 0;
 `
 
+const TodayBadge = styled.span`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: #fff;
+  background: ${({ theme }) => theme.colors.accent};
+  padding: 2px 8px; border-radius: 4px; margin-left: 8px;
+  vertical-align: middle;
+`
+
+const PastHeader = styled.div`
+  display: flex; align-items: center; gap: 10px;
+  padding: 32px 0 16px; cursor: pointer;
+  span {
+    font-family: ${({ theme }) => theme.fonts.sans};
+    font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: ${({ theme }) => theme.colors.textMuted};
+  }
+  svg {
+    width: 18px; height: 18px;
+    stroke: ${({ theme }) => theme.colors.textMuted};
+    fill: none; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  &:hover { opacity: 0.7; }
+`
+
 const ClosingBanner = styled.section`
   background: #1a1a1a;
   width: 100%;
@@ -709,8 +703,16 @@ const QuoteText = styled.p`
 export default function EventsPage() {
   const [searchTerm] = useState('')
   const [view, setView] = useState<'list' | 'month'>('list')
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date(2026, 7, 1)) // Default to August 2026 to see events
+  const [currentMonth, setCurrentMonth] = useState<Date>(() => {
+    const now = new Date()
+    return new Date(now.getFullYear(), now.getMonth(), 1)
+  })
   const [selectedEvent, setSelectedEvent] = useState<ChurchEvent | null>(null)
+  const [showPast, setShowPast] = useState(false)
+
+  const now = new Date()
+  // Midnight today — so today's events still show
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
   const allEvents = useMemo(() => {
     return EVENTS.filter(
@@ -719,6 +721,20 @@ export default function EventsPage() {
         e.category.toLowerCase().includes(searchTerm.toLowerCase()),
     ).sort((a, b) => a.date.getTime() - b.date.getTime())
   }, [searchTerm])
+
+  const upcomingEvents = useMemo(() =>
+    allEvents.filter(e => {
+      const eventDate = new Date(e.date.getFullYear(), e.date.getMonth(), e.date.getDate())
+      return eventDate >= today
+    }),
+    [allEvents, today])
+
+  const pastEvents = useMemo(() =>
+    allEvents.filter(e => {
+      const eventDate = new Date(e.date.getFullYear(), e.date.getMonth(), e.date.getDate())
+      return eventDate < today
+    }).reverse(), // most recent past event first
+    [allEvents, today])
 
   // Calendar logic
   const year = currentMonth.getFullYear()
@@ -819,8 +835,7 @@ export default function EventsPage() {
 
         <HR />
 
-        {view === 'month' ? (
-          <CalendarContainer>
+        {view === 'month' ? (          <CalendarContainer>
             <CalendarHeader>
               <NavButton onClick={prevMonth} aria-label="Previous month">
                 <svg viewBox="0 0 24 24">
@@ -868,44 +883,92 @@ export default function EventsPage() {
             </DaysGrid>
           </CalendarContainer>
         ) : (
-          allEvents.map((event) => {
-            const imgSrc = EVENT_IMAGES[event.id]
-            const meta = [event.location, event.time].filter(Boolean).join(' · ')
+          <>
+            {upcomingEvents.length === 0 && (
+              <div style={{ padding: '48px 0', textAlign: 'center' }}>
+                <p style={{ fontFamily: 'inherit', fontSize: 15, color: '#888', margin: 0 }}>
+                  No upcoming events at the moment. Check back soon!
+                </p>
+              </div>
+            )}
+            {upcomingEvents.map((event) => {
+              const imgSrc = EVENT_IMAGES[event.id]
+              const meta = [event.location, event.time].filter(Boolean).join(' · ')
+              const eventDate = new Date(event.date.getFullYear(), event.date.getMonth(), event.date.getDate())
+              const isToday = eventDate.getTime() === today.getTime()
 
-            return (
-              <EventRow key={event.id}>
-                <DateCol>
-                  <MonthAbbr>{MONTH_ABBR[event.date.getMonth()]}</MonthAbbr>
-                  <DayNumber>{event.date.getDate()}</DayNumber>
-                </DateCol>
+              return (
+                <EventRow key={event.id}>
+                  <DateCol>
+                    <MonthAbbr>{MONTH_ABBR[event.date.getMonth()]}</MonthAbbr>
+                    <DayNumber>{event.date.getDate()}</DayNumber>
+                  </DateCol>
 
-                <ThumbCol>
-                  {imgSrc
-                    ? <Thumbnail src={imgSrc} alt={event.title} loading="lazy" />
-                    : <ThumbPlaceholder $color={event.categoryColor} />}
-                </ThumbCol>
+                  <ThumbCol>
+                    {imgSrc
+                      ? <Thumbnail src={imgSrc} alt={event.title} loading="lazy" />
+                      : <ThumbPlaceholder $color={event.categoryColor} />}
+                  </ThumbCol>
 
-                <InfoCol>
-                  <EventTitle>{event.title}</EventTitle>
-                  {meta && <EventMeta>{meta}</EventMeta>}
-                  <EventDesc>{event.description}</EventDesc>
-                  <ViewLink tabIndex={0} role="button" onClick={() => setSelectedEvent(event)}>
-                    View Event Details →
-                  </ViewLink>
-                </InfoCol>
-              </EventRow>
-            )
-          })
+                  <InfoCol>
+                    <EventTitle>
+                      {event.title}
+                      {isToday && <TodayBadge>Today</TodayBadge>}
+                    </EventTitle>
+                    {meta && <EventMeta>{meta}</EventMeta>}
+                    <EventDesc>{event.description}</EventDesc>
+                    <ViewLink tabIndex={0} role="button" onClick={() => setSelectedEvent(event)}>
+                      View Event Details →
+                    </ViewLink>
+                  </InfoCol>
+                </EventRow>
+              )
+            })}
+
+            {/* Past events toggle */}
+            {pastEvents.length > 0 && (
+              <>
+                <PastHeader onClick={() => setShowPast(v => !v)}>
+                  <svg viewBox="0 0 24 24">
+                    {showPast
+                      ? <polyline points="18 15 12 9 6 15"/>
+                      : <polyline points="6 9 12 15 18 9"/>
+                    }
+                  </svg>
+                  <span>{showPast ? 'Hide' : 'Show'} Past Events ({pastEvents.length})</span>
+                </PastHeader>
+
+                {showPast && pastEvents.map((event) => {
+                  const imgSrc = EVENT_IMAGES[event.id]
+                  const meta = [event.location, event.time].filter(Boolean).join(' · ')
+
+                  return (
+                    <EventRow key={event.id} style={{ opacity: 0.5 }}>
+                      <DateCol>
+                        <MonthAbbr>{MONTH_ABBR[event.date.getMonth()]}</MonthAbbr>
+                        <DayNumber>{event.date.getDate()}</DayNumber>
+                      </DateCol>
+                      <ThumbCol>
+                        {imgSrc
+                          ? <Thumbnail src={imgSrc} alt={event.title} loading="lazy" style={{ filter: 'grayscale(40%)' }} />
+                          : <ThumbPlaceholder $color={event.categoryColor} />}
+                      </ThumbCol>
+                      <InfoCol>
+                        <EventTitle>{event.title}</EventTitle>
+                        {meta && <EventMeta>{meta}</EventMeta>}
+                        <EventDesc>{event.description}</EventDesc>
+                        <ViewLink tabIndex={0} role="button" onClick={() => setSelectedEvent(event)}>
+                          View Details →
+                        </ViewLink>
+                      </InfoCol>
+                    </EventRow>
+                  )
+                })}
+              </>
+            )}
+          </>
         )}
 
-        <PrevRow tabIndex={0} role="button" aria-label="Previous events">
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="9" />
-            <polyline points="12 8 8 12 12 16" />
-            <line x1="16" y1="12" x2="8" y2="12" />
-          </svg>
-          <span>Previous Events</span>
-        </PrevRow>
       </ContentSection>
 
       {/* Closing Banner */}
