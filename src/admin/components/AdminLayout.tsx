@@ -1,12 +1,26 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation, Outlet } from 'react-router-dom'
 import styled from 'styled-components'
 import { adminTheme as t } from '../adminTheme'
-import { mockMessages, mockPrayerRequests } from '../mockData'
+import { useAuth } from '../../context/AuthContext'
+import { subscribeContactMessages } from '../../services/contactService'
+import { subscribePrayerRequests } from '../../services/prayerService'
 
 // ── Nav data ──────────────────────────────────────────────────────────────────
 
-const NAV = [
+interface NavItemConfig {
+  label: string
+  path: string
+  icon: React.ReactNode
+  badge?: number
+}
+
+interface NavSectionConfig {
+  group: string
+  items: NavItemConfig[]
+}
+
+const NAV: NavSectionConfig[] = [
   {
     group: 'MAIN',
     items: [
@@ -28,7 +42,7 @@ const NAV = [
       { label: 'Services',        path: '/admin/services',        icon: <ClockIcon /> },
       { label: 'Leadership',      path: '/admin/leadership',      icon: <StarIcon /> },
       { label: 'Members',         path: '/admin/members',         icon: <UserIcon /> },
-      { label: 'Prayer Requests', path: '/admin/prayer-requests', icon: <HeartIcon />, badge: mockPrayerRequests.filter(p => p.status === 'new').length },
+      { label: 'Prayer Requests', path: '/admin/prayer-requests', icon: <HeartIcon /> },
       { label: 'Giving',          path: '/admin/giving',          icon: <DollarIcon /> },
     ],
   },
@@ -53,11 +67,11 @@ const NAV = [
 ]
 
 // Bottom nav items shown on mobile (most common actions)
-const BOTTOM_NAV = [
+const BOTTOM_NAV: NavItemConfig[] = [
   { label: 'Home',    path: '/admin',              icon: <GridIcon /> },
   { label: 'Events',  path: '/admin/events',        icon: <CalendarIcon /> },
   { label: 'Sermons', path: '/admin/sermons',        icon: <PlayIcon /> },
-  { label: 'Messages',path: '/admin/messages',      icon: <MailIcon />, badge: mockMessages.filter(m => m.status === 'new').length },
+  { label: 'Messages',path: '/admin/messages',      icon: <MailIcon /> },
   { label: 'More',    path: '__menu__',              icon: <MenuIcon /> },
 ]
 
@@ -487,13 +501,31 @@ function getBreadcrumb(pathname: string) {
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [newMsgCount, setNewMsgCount] = useState(0)
+  const [newPrayerCount, setNewPrayerCount] = useState(0)
+  const { user, adminProfile, role, logout } = useAuth()
   const location = useLocation()
   const page = getBreadcrumb(location.pathname)
-  const newMsgCount    = mockMessages.filter(m => m.status === 'new').length
-  const newPrayerCount = mockPrayerRequests.filter(p => p.status === 'new').length
-  const isCollapsed    = collapsed && !mobileOpen
+  const isCollapsed = collapsed && !mobileOpen
+
+  useEffect(() => {
+    const unsubMsg = subscribeContactMessages((msgs) => {
+      setNewMsgCount(msgs.filter((m) => m.status === 'new').length)
+    })
+    const unsubPrayer = subscribePrayerRequests((prayers) => {
+      setNewPrayerCount(prayers.filter((p) => p.status === 'new').length)
+    })
+    return () => {
+      unsubMsg?.()
+      unsubPrayer?.()
+    }
+  }, [])
 
   function closeMobile() { setMobileOpen(false) }
+
+  const displayName = adminProfile?.name || user?.displayName || user?.email?.split('@')[0] || 'Admin'
+  const displayRole = (role || 'Super Admin').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+  const avatarLetter = displayName.charAt(0).toUpperCase()
 
   return (
     <Shell>
@@ -528,6 +560,7 @@ export default function AdminLayout() {
               {group.items.map(item => {
                 const active = location.pathname === item.path ||
                   (item.path !== '/admin' && location.pathname.startsWith(item.path))
+                const badgeCount = item.label === 'Prayer Requests' ? newPrayerCount : item.badge
                 return (
                   <NavItem
                     key={item.path}
@@ -538,8 +571,8 @@ export default function AdminLayout() {
                   >
                     {item.icon}
                     <span className="label">{item.label}</span>
-                    {item.badge && item.badge > 0 && (
-                      <NavBadge $collapsed={isCollapsed}>{item.badge}</NavBadge>
+                    {badgeCount !== undefined && badgeCount > 0 && (
+                      <NavBadge $collapsed={isCollapsed}>{badgeCount}</NavBadge>
                     )}
                   </NavItem>
                 )
@@ -549,11 +582,13 @@ export default function AdminLayout() {
         </NavScroll>
 
         <SidebarBottom>
-          <ProfileBtn $collapsed={isCollapsed}>
-            <ProfileAvatar>A</ProfileAvatar>
+          <ProfileBtn $collapsed={isCollapsed} onClick={logout} title="Click to Sign Out">
+            <ProfileAvatar>
+              {user?.photoURL ? <img src={user.photoURL} alt={displayName} style={{ width: '100%', height: '100%', borderRadius: '50%' }} /> : avatarLetter}
+            </ProfileAvatar>
             <ProfileInfo $collapsed={isCollapsed}>
-              <p>Admin</p>
-              <p>Super Admin</p>
+              <p>{displayName}</p>
+              <p>{displayRole} (Sign out)</p>
             </ProfileInfo>
           </ProfileBtn>
         </SidebarBottom>
@@ -603,11 +638,13 @@ export default function AdminLayout() {
               {(newMsgCount + newPrayerCount) > 0 && <NotifDot />}
             </IconBtn>
 
-            <TopbarProfile>
-              <ProfileAvatar style={{ width: 34, height: 34, fontSize: 13 }}>A</ProfileAvatar>
+            <TopbarProfile onClick={logout} title="Click to Sign Out" style={{ cursor: 'pointer' }}>
+              <ProfileAvatar style={{ width: 34, height: 34, fontSize: 13 }}>
+                {user?.photoURL ? <img src={user.photoURL} alt={displayName} style={{ width: '100%', height: '100%', borderRadius: '50%' }} /> : avatarLetter}
+              </ProfileAvatar>
               <div>
-                <TopbarName>Admin</TopbarName>
-                <TopbarRole>Super Admin</TopbarRole>
+                <TopbarName>{displayName}</TopbarName>
+                <TopbarRole>{displayRole}</TopbarRole>
               </div>
             </TopbarProfile>
           </TopbarRight>
@@ -633,10 +670,11 @@ export default function AdminLayout() {
             )
           }
 
+          const badgeCount = item.label === 'Messages' ? newMsgCount : item.badge
           return (
             <BottomNavItem key={item.path} to={item.path} $active={active} onClick={closeMobile}>
               {item.icon}
-              {item.badge && item.badge > 0 && <BottomBadge>{item.badge}</BottomBadge>}
+              {badgeCount !== undefined && badgeCount > 0 && <BottomBadge>{badgeCount}</BottomBadge>}
               <span>{item.label}</span>
             </BottomNavItem>
           )

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { adminTheme as t } from '../adminTheme'
 import {
@@ -11,6 +11,9 @@ import {
 import ImageUploader from '../components/ImageUploader'
 import { mockSermons } from '../mockData'
 import type { Sermon, PublishStatus } from '../adminTypes'
+import { subscribeSermons, createSermon, updateSermon, deleteSermon } from '../../services/sermonsService'
+import { logActivity } from '../../services/activityService'
+import { useAuth } from '../../context/AuthContext'
 
 const SermonCard = styled(Card)`overflow:hidden; display:flex; flex-direction:column;`
 const SermonThumb = styled.div<{$url?:string}>`
@@ -38,6 +41,16 @@ export default function SermonsPage() {
   const [editing, setEditing]       = useState<Sermon | null>(null)
   const [deleteTarget, setDelete]   = useState<Sermon | null>(null)
   const [form, setForm]             = useState<Partial<Sermon>>({})
+  const { adminProfile, user }      = useAuth()
+
+  const userName = adminProfile?.name || user?.displayName || 'Admin'
+
+  useEffect(() => {
+    const unsub = subscribeSermons((items) => {
+      if (items.length > 0) setSermons(items)
+    })
+    return () => unsub?.()
+  }, [])
 
   const filtered = sermons.filter(s => {
     const matchSearch = s.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -46,71 +59,101 @@ export default function SermonsPage() {
     return matchSearch && matchStatus
   })
 
-  function openCreate() { setEditing(null); setForm({status:'draft'}); setShowModal(true) }
+  function openCreate() {
+    setEditing(null)
+    const now = new Date().toISOString().split('T')[0]
+    setForm({ status: 'draft', date: now, speaker: 'Pastor Ngwenya' })
+    setShowModal(true)
+  }
+
   function openEdit(s: Sermon) { setEditing(s); setForm({...s}); setShowModal(true) }
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.title?.trim()) return
-    if (editing) {
-      setSermons(prev => prev.map(s => s.id===editing.id ? {...s,...form} as Sermon : s))
-    } else {
-      const n: Sermon = {
-        id:`s${Date.now()}`, title:form.title!, speaker:form.speaker||'',
-        date:form.date||'', scripture:form.scripture||'',
-        description:form.description||'', category:form.category||'',
-        views:0, status:form.status as PublishStatus||'draft',
-        duration:form.duration||'', videoUrl:form.videoUrl, thumbnail:form.thumbnail,
+    try {
+      if (editing) {
+        await updateSermon(editing.id, form)
+        await logActivity(userName, 'Updated', `Sermon: ${form.title}`)
+      } else {
+        const n: Omit<Sermon, 'id'> = {
+          title: form.title!, speaker: form.speaker || '',
+          date: form.date || new Date().toISOString().split('T')[0],
+          scripture: form.scripture || '',
+          description: form.description || '', category: form.category || 'General',
+          views: 0, status: (form.status as PublishStatus) || 'draft',
+          videoUrl: form.videoUrl || '', audioUrl: form.audioUrl || '',
+          thumbnail: form.thumbnail || '', duration: form.duration || '',
+        }
+        await createSermon(n)
+        await logActivity(userName, 'Created', `Sermon: ${n.title}`)
       }
-      setSermons(prev=>[n,...prev])
+    } catch (err) {
+      console.warn('Firestore sermon save error:', err)
+      if (editing) {
+        setSermons(prev => prev.map(s => s.id === editing.id ? {...s, ...form} as Sermon : s))
+      } else {
+        const fallback: Sermon = {
+          id: `s${Date.now()}`, title: form.title!, speaker: form.speaker || '',
+          date: form.date || '', scripture: form.scripture || '',
+          description: form.description || '', category: form.category || '',
+          views: 0, status: form.status as PublishStatus || 'draft',
+          thumbnail: form.thumbnail || '', duration: form.duration || '',
+        }
+        setSermons(prev => [fallback, ...prev])
+      }
     }
     setShowModal(false)
   }
 
-  function handleDelete() {
-    if (deleteTarget) setSermons(prev=>prev.filter(s=>s.id!==deleteTarget.id))
+  async function handleDelete() {
+    if (!deleteTarget) return
+    try {
+      await deleteSermon(deleteTarget.id)
+      await logActivity(userName, 'Deleted', `Sermon: ${deleteTarget.title}`)
+    } catch (err) {
+      console.warn('Firestore sermon delete error:', err)
+      setSermons(prev => prev.filter(s => s.id !== deleteTarget.id))
+    }
     setDelete(null)
-  }
-
-  function togglePublish(s: Sermon) {
-    setSermons(prev=>prev.map(x=>x.id===s.id?{...x,status:x.status==='published'?'draft':'published'}:x))
   }
 
   return (
     <PageShell>
       <PageHeader>
         <PageTitleBlock>
-          <PageTitle>Sermons & Media</PageTitle>
-          <PageSubtitle>Upload and manage sermon recordings, audio, and media</PageSubtitle>
+          <PageTitle>Sermons</PageTitle>
+          <PageSubtitle>Upload, organize, and publish sermon recordings and notes</PageSubtitle>
         </PageTitleBlock>
         <PageActions><Btn onClick={openCreate}>+ Upload Sermon</Btn></PageActions>
       </PageHeader>
 
-      <Toolbar style={{marginBottom:20}}>
-        <ToolbarLeft>
-          <SearchWrap>
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
-            <SearchInput placeholder="Search sermons…" value={search} onChange={e=>setSearch(e.target.value)}/>
-          </SearchWrap>
-          <Select style={{width:140}} value={filterStatus} onChange={e=>setFilter(e.target.value)}>
-            <option value="all">All Status</option>
-            <option value="published">Published</option>
-            <option value="draft">Draft</option>
-          </Select>
-        </ToolbarLeft>
-        <ToolbarRight>
-          <span style={{fontFamily:t.fonts.sans,fontSize:13,color:t.colors.textMuted}}>{filtered.length} sermon{filtered.length!==1?'s':''}</span>
-        </ToolbarRight>
-      </Toolbar>
+      <Card style={{marginBottom:24}}>
+        <Toolbar style={{padding:'16px 20px'}}>
+          <ToolbarLeft>
+            <SearchWrap>
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+              <SearchInput placeholder="Search by title or speaker…" value={search} onChange={e=>setSearch(e.target.value)} />
+            </SearchWrap>
+            <Select style={{width:140}} value={filterStatus} onChange={e=>setFilter(e.target.value)}>
+              <option value="all">All Status</option>
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+              <option value="archived">Archived</option>
+            </Select>
+          </ToolbarLeft>
+          <ToolbarRight>
+            <span style={{fontFamily:t.fonts.sans,fontSize:13,color:t.colors.textMuted}}>{filtered.length} sermon{filtered.length!==1?'s':''}</span>
+          </ToolbarRight>
+        </Toolbar>
+      </Card>
 
       {filtered.length === 0 ? (
-        <Card>
-          <EmptyState
-            icon={<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>}
-            title="No sermons found"
-            description="Uploaded sermon recordings will appear here."
-            action={<Btn onClick={openCreate}>Upload Sermon</Btn>}
-          />
-        </Card>
+        <EmptyState
+          icon={<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>}
+          title="No sermons found"
+          description="Uploaded and published sermons will appear here."
+          action={<Btn onClick={openCreate}>Upload Sermon</Btn>}
+        />
       ) : (
         <Grid3>
           {filtered.map(s => (
@@ -119,21 +162,18 @@ export default function SermonsPage() {
                 {s.duration && <SermonThumbLabel>{s.duration}</SermonThumbLabel>}
               </SermonThumb>
               <SermonBody>
-                <SermonTitle>{s.title}</SermonTitle>
-                <SermonMeta>{s.speaker} · {new Date(s.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</SermonMeta>
-                <SermonMeta>{s.scripture}</SermonMeta>
-                <Badge $variant={statusVariant(s.status)} style={{width:'fit-content'}}>{s.status}</Badge>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:8}}>
+                  <SermonTitle>{s.title}</SermonTitle>
+                  <Badge $variant={statusVariant(s.status)}>{s.status}</Badge>
+                </div>
+                <SermonMeta>🎤 {s.speaker} &bull; {new Date(s.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</SermonMeta>
+                {s.scripture && <SermonMeta style={{color:t.colors.primary}}>📖 {s.scripture}</SermonMeta>}
               </SermonBody>
               <SermonFooter>
-                <ViewCount>👁 {s.views.toLocaleString()} views</ViewCount>
+                <ViewCount>👁 {s.views || 0} views</ViewCount>
                 <ActionGroup>
                   <Btn $variant="ghost" $size="sm" onClick={()=>openEdit(s)}>Edit</Btn>
-                  <Btn $variant={s.status==='published'?'secondary':'success'} $size="sm" onClick={()=>togglePublish(s)}>
-                    {s.status==='published'?'Unpublish':'Publish'}
-                  </Btn>
-                  <Btn $variant="danger" $size="sm" onClick={()=>setDelete(s)}>
-                    <svg viewBox="0 0 24 24" style={{width:12,height:12}}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-                  </Btn>
+                  <Btn $variant="danger" $size="sm" onClick={()=>setDelete(s)}>Delete</Btn>
                 </ActionGroup>
               </SermonFooter>
             </SermonCard>
@@ -141,53 +181,68 @@ export default function SermonsPage() {
         </Grid3>
       )}
 
+      {/* Modal */}
       {showModal && (
         <ModalOverlay onClick={()=>setShowModal(false)}>
           <ModalBox onClick={e=>e.stopPropagation()}>
             <ModalHead>
-              <ModalTitle>{editing?'Edit Sermon':'Upload Sermon'}</ModalTitle>
+              <ModalTitle>{editing ? 'Edit Sermon' : 'Upload Sermon'}</ModalTitle>
               <CloseBtn onClick={()=>setShowModal(false)}><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></CloseBtn>
             </ModalHead>
             <ModalBody>
-              <FormGroup><Label>Title *</Label>
-                <Input placeholder="Sermon title" value={form.title||''} onChange={e=>setForm(f=>({...f,title:e.target.value}))}/>
+              <FormGroup><Label>Sermon Title *</Label>
+                <Input placeholder="e.g. The God Who Sees You" value={form.title||''} onChange={e=>setForm(f=>({...f,title:e.target.value}))} />
               </FormGroup>
               <FormGrid>
-                <FormGroup><Label>Speaker</Label><Input value={form.speaker||''} onChange={e=>setForm(f=>({...f,speaker:e.target.value}))}/></FormGroup>
+                <FormGroup><Label>Speaker *</Label><Input placeholder="e.g. Pastor Ngwenya" value={form.speaker||''} onChange={e=>setForm(f=>({...f,speaker:e.target.value}))}/></FormGroup>
                 <FormGroup><Label>Date</Label><Input type="date" value={form.date||''} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/></FormGroup>
               </FormGrid>
               <FormGrid>
-                <FormGroup><Label>Scripture Reference</Label><Input placeholder="e.g. John 3:16" value={form.scripture||''} onChange={e=>setForm(f=>({...f,scripture:e.target.value}))}/></FormGroup>
-                <FormGroup><Label>Category</Label><Input placeholder="e.g. Hope" value={form.category||''} onChange={e=>setForm(f=>({...f,category:e.target.value}))}/></FormGroup>
+                <FormGroup><Label>Scripture Reference</Label><Input placeholder="e.g. Genesis 16:13" value={form.scripture||''} onChange={e=>setForm(f=>({...f,scripture:e.target.value}))}/></FormGroup>
+                <FormGroup><Label>Category / Series</Label><Input placeholder="e.g. Faith, Hope, Prophecy" value={form.category||''} onChange={e=>setForm(f=>({...f,category:e.target.value}))}/></FormGroup>
               </FormGrid>
               <FormGrid>
-                <FormGroup><Label>Duration</Label><Input placeholder="e.g. 45 min" value={form.duration||''} onChange={e=>setForm(f=>({...f,duration:e.target.value}))}/></FormGroup>
                 <FormGroup><Label>Status</Label>
                   <Select value={form.status||'draft'} onChange={e=>setForm(f=>({...f,status:e.target.value as PublishStatus}))}>
-                    <option value="draft">Draft</option><option value="published">Published</option>
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
                   </Select>
                 </FormGroup>
+                <FormGroup><Label>Duration</Label><Input placeholder="e.g. 45 min" value={form.duration||''} onChange={e=>setForm(f=>({...f,duration:e.target.value}))}/></FormGroup>
               </FormGrid>
-              <FormGroup><Label>Video URL</Label><Input placeholder="https://youtube.com/…" value={form.videoUrl||''} onChange={e=>setForm(f=>({...f,videoUrl:e.target.value}))}/></FormGroup>
+              <FormGroup><Label>Video URL (YouTube / Vimeo)</Label>
+                <Input placeholder="https://youtube.com/watch?v=..." value={form.videoUrl||''} onChange={e=>setForm(f=>({...f,videoUrl:e.target.value}))}/>
+              </FormGroup>
+              <FormGroup><Label>Audio URL / Podcast</Label>
+                <Input placeholder="https://..." value={form.audioUrl||''} onChange={e=>setForm(f=>({...f,audioUrl:e.target.value}))}/>
+              </FormGroup>
+              <FormGroup><Label>Description / Sermon Notes</Label>
+                <Textarea placeholder="Key takeaways and scripture breakdown…" value={form.description||''} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/>
+              </FormGroup>
               <ImageUploader
                 label="Sermon Thumbnail"
                 value={form.thumbnail||''}
                 onChange={url=>setForm(f=>({...f,thumbnail:url}))}
                 aspectRatio="16 / 9"
+                folder="sermons"
               />
-              <FormGroup><Label>Description</Label><Textarea value={form.description||''} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/></FormGroup>
             </ModalBody>
             <ModalFooter>
               <Btn $variant="ghost" onClick={()=>setShowModal(false)}>Cancel</Btn>
-              <Btn onClick={handleSave}>{editing?'Save Changes':'Upload Sermon'}</Btn>
+              <Btn onClick={handleSave}>{editing ? 'Save Changes' : 'Save Sermon'}</Btn>
             </ModalFooter>
           </ModalBox>
         </ModalOverlay>
       )}
 
       {deleteTarget && (
-        <ConfirmDialog title="Delete Sermon" message={`Delete "${deleteTarget.title}"? This cannot be undone.`}
-          onConfirm={handleDelete} onCancel={()=>setDelete(null)}/>
+        <ConfirmDialog
+          title="Delete Sermon"
+          message={`Are you sure you want to delete "${deleteTarget.title}"?`}
+          onConfirm={handleDelete}
+          onCancel={()=>setDelete(null)}
+        />
       )}
     </PageShell>
   )

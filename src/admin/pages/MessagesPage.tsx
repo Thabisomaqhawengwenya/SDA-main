@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { adminTheme as t } from '../adminTheme'
 import {
@@ -10,6 +10,9 @@ import {
 } from '../components/ui'
 import { mockMessages } from '../mockData'
 import type { ContactMessage, MessageStatus } from '../adminTypes'
+import { subscribeContactMessages, updateMessageStatus, toggleMessageImportant, deleteContactMessage } from '../../services/contactService'
+import { logActivity } from '../../services/activityService'
+import { useAuth } from '../../context/AuthContext'
 
 const MsgList = styled.div`display:flex; flex-direction:column;`
 const MsgRow = styled.div<{$unread:boolean}>`
@@ -40,6 +43,16 @@ export default function MessagesPage() {
   const [filterStatus, setFilter] = useState<string>('all')
   const [viewing, setViewing]     = useState<ContactMessage | null>(null)
   const [reply, setReply]         = useState('')
+  const { adminProfile, user }    = useAuth()
+
+  const userName = adminProfile?.name || user?.displayName || 'Admin'
+
+  useEffect(() => {
+    const unsub = subscribeContactMessages((items) => {
+      if (items.length > 0) setMessages(items)
+    })
+    return () => unsub?.()
+  }, [])
 
   const filtered = messages.filter(m => {
     const matchSearch = m.sender.toLowerCase().includes(search.toLowerCase()) ||
@@ -48,51 +61,65 @@ export default function MessagesPage() {
     return matchSearch && matchStatus
   })
 
-  function openMessage(m: ContactMessage) {
+  async function openMessage(m: ContactMessage) {
     setViewing(m)
     setReply('')
     if (m.status === 'new') {
-      setMessages(prev=>prev.map(x=>x.id===m.id?{...x,status:'read' as MessageStatus}:x))
+      try {
+        await updateMessageStatus(m.id, 'read')
+      } catch (err) {
+        setMessages(prev=>prev.map(x=>x.id===m.id?{...x,status:'read' as MessageStatus}:x))
+      }
     }
   }
 
-  function markStatus(id: string, status: MessageStatus) {
-    setMessages(prev=>prev.map(m=>m.id===id?{...m,status}:m))
-    if (viewing?.id === id) setViewing(v=>v?{...v,status}:null)
+  async function markStatus(id: string, status: MessageStatus) {
+    try {
+      await updateMessageStatus(id, status)
+      await logActivity(userName, 'Updated Status', `Message #${id} -> ${status}`)
+    } catch (err) {
+      setMessages(prev=>prev.map(m=>m.id===id?{...m,status}:m))
+    }
   }
 
-  function toggleImportant(id: string) {
-    setMessages(prev=>prev.map(m=>m.id===id?{...m,isImportant:!m.isImportant}:m))
-    if (viewing?.id === id) setViewing(v=>v?{...v,isImportant:!v.isImportant}:null)
+  async function toggleStar(id: string, current: boolean, e: React.MouseEvent) {
+    e.stopPropagation()
+    try {
+      await toggleMessageImportant(id, !current)
+    } catch (err) {
+      setMessages(prev=>prev.map(m=>m.id===id?{...m,isImportant:!current}:m))
+    }
   }
 
-  function handleReply() {
-    if (!reply.trim() || !viewing) return
-    markStatus(viewing.id, 'replied')
+  async function handleDelete(id: string) {
+    try {
+      await deleteContactMessage(id)
+      await logActivity(userName, 'Deleted', `Message #${id}`)
+    } catch (err) {
+      setMessages(prev=>prev.filter(m=>m.id!==id))
+    }
     setViewing(null)
   }
-
-  const newCount = messages.filter(m=>m.status==='new').length
 
   return (
     <PageShell>
       <PageHeader>
         <PageTitleBlock>
-          <PageTitle>Messages {newCount > 0 && <span style={{fontFamily:t.fonts.sans,fontSize:14,fontWeight:400,color:t.colors.danger,marginLeft:8}}>{newCount} new</span>}</PageTitle>
-          <PageSubtitle>Contact form submissions from the church website</PageSubtitle>
+          <PageTitle>Contact Messages</PageTitle>
+          <PageSubtitle>Inquiries and messages submitted through the website contact form</PageSubtitle>
         </PageTitleBlock>
       </PageHeader>
 
       <Card>
-        <Toolbar style={{padding:'16px 20px 0'}}>
+        <Toolbar style={{padding:'16px 20px'}}>
           <ToolbarLeft>
             <SearchWrap>
               <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
-              <SearchInput placeholder="Search messages…" value={search} onChange={e=>setSearch(e.target.value)}/>
+              <SearchInput placeholder="Search messages…" value={search} onChange={e=>setSearch(e.target.value)} />
             </SearchWrap>
             <Select style={{width:140}} value={filterStatus} onChange={e=>setFilter(e.target.value)}>
-              <option value="all">All</option>
-              <option value="new">New</option>
+              <option value="all">All Messages</option>
+              <option value="new">Unread</option>
               <option value="read">Read</option>
               <option value="replied">Replied</option>
               <option value="archived">Archived</option>
@@ -106,65 +133,70 @@ export default function MessagesPage() {
         {filtered.length === 0 ? (
           <EmptyState
             icon={<svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>}
-            title="No messages" description="Contact form submissions will appear here."
+            title="No messages found"
+            description="Incoming messages from the contact page will appear here."
           />
         ) : (
-          <MsgList style={{marginTop:16}}>
+          <MsgList>
             {filtered.map(m => (
-              <MsgRow key={m.id} $unread={m.status==='new'} onClick={()=>openMessage(m)}>
-                {m.status==='new' ? <ImportantDot/> : <div style={{width:8}}/>}
-                <Avatar $size={36}>{m.sender.charAt(0)}</Avatar>
+              <MsgRow key={m.id} $unread={m.status === 'new'} onClick={()=>openMessage(m)}>
+                {m.status === 'new' ? <ImportantDot /> : <div style={{width:8}} />}
+                <StarBtn $active={m.isImportant} onClick={e=>toggleStar(m.id,m.isImportant,e)}>
+                  {m.isImportant ? '★' : '☆'}
+                </StarBtn>
+                <Avatar style={{width:36,height:36,fontSize:14,flexShrink:0}}>{m.sender.charAt(0)}</Avatar>
                 <MsgContent>
                   <MsgTop>
-                    <MsgSender>{m.sender}</MsgSender>
-                    <div style={{display:'flex',alignItems:'center',gap:8}}>
-                      <MsgTime>{new Date(m.receivedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</MsgTime>
-                      <Badge $variant={statusVariant(m.status)}>{m.status}</Badge>
-                    </div>
+                    <MsgSender>{m.sender} &bull; <span style={{fontSize:12,color:t.colors.textMuted,fontWeight:400}}>{m.email}</span></MsgSender>
+                    <MsgTime>{new Date(m.receivedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</MsgTime>
                   </MsgTop>
                   <MsgSubject>{m.subject}</MsgSubject>
                   <MsgPreview>{m.message}</MsgPreview>
                 </MsgContent>
-                <StarBtn $active={m.isImportant} onClick={e=>{e.stopPropagation();toggleImportant(m.id)}}>★</StarBtn>
+                <Badge $variant={statusVariant(m.status)}>{m.status}</Badge>
               </MsgRow>
             ))}
           </MsgList>
         )}
       </Card>
 
-      {/* View message modal */}
+      {/* Message Modal */}
       {viewing && (
         <ModalOverlay onClick={()=>setViewing(null)}>
-          <ModalBox $width="600px" onClick={e=>e.stopPropagation()}>
+          <ModalBox onClick={e=>e.stopPropagation()} style={{maxWidth:600}}>
             <ModalHead>
-              <ModalTitle>{viewing.subject}</ModalTitle>
+              <div>
+                <ModalTitle>{viewing.subject}</ModalTitle>
+                <p style={{fontFamily:t.fonts.sans,fontSize:12,color:t.colors.textMuted,margin:'3px 0 0'}}>
+                  From: {viewing.sender} ({viewing.email}) &bull; {new Date(viewing.receivedAt).toLocaleString('en-US')}
+                </p>
+              </div>
               <CloseBtn onClick={()=>setViewing(null)}><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></CloseBtn>
             </ModalHead>
             <ModalBody>
-              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:16,paddingBottom:16,borderBottom:`1px solid ${t.colors.border}`}}>
-                <Avatar $size={40}>{viewing.sender.charAt(0)}</Avatar>
-                <div>
-                  <p style={{fontFamily:t.fonts.sans,fontSize:14,fontWeight:600,color:t.colors.text,margin:'0 0 2px'}}>{viewing.sender}</p>
-                  <p style={{fontFamily:t.fonts.sans,fontSize:12,color:t.colors.textMuted,margin:0}}>{viewing.email} · {new Date(viewing.receivedAt).toLocaleString('en-US',{dateStyle:'medium',timeStyle:'short'})}</p>
-                </div>
-                <div style={{marginLeft:'auto',display:'flex',gap:6}}>
-                  <Badge $variant={statusVariant(viewing.status)}>{viewing.status}</Badge>
-                  {viewing.isImportant && <Badge $variant="warning">★ Important</Badge>}
-                </div>
-              </div>
-              <p style={{fontFamily:t.fonts.sans,fontSize:14,color:t.colors.textSecondary,lineHeight:1.75,margin:'0 0 20px',padding:'14px',background:t.colors.surfaceAlt,borderRadius:t.radius.md}}>
+              <div style={{fontFamily:t.fonts.sans,fontSize:14,color:t.colors.text,lineHeight:1.7,background:t.colors.surfaceAlt,padding:18,borderRadius:8,marginBottom:20}}>
                 {viewing.message}
-              </p>
-              <FormGroup><Label>Reply</Label>
-                <Textarea placeholder="Type your reply…" value={reply} onChange={e=>setReply(e.target.value)} style={{minHeight:100}}/>
+              </div>
+
+              <FormGroup><Label>Reply via Email</Label>
+                <Textarea placeholder="Type your response to send to their email…" value={reply} onChange={e=>setReply(e.target.value)} rows={4}/>
               </FormGroup>
             </ModalBody>
             <ModalFooter>
-              <Btn $variant="ghost" $size="sm" onClick={()=>markStatus(viewing.id,'archived')}>Archive</Btn>
-              <Btn $variant="ghost" $size="sm" onClick={()=>toggleImportant(viewing.id)}>{viewing.isImportant?'Remove Star':'Star'}</Btn>
-              <div style={{flex:1}}/>
-              <Btn $variant="ghost" onClick={()=>setViewing(null)}>Close</Btn>
-              <Btn onClick={handleReply} disabled={!reply.trim()}>Send Reply</Btn>
+              <div style={{display:'flex',gap:8}}>
+                <Btn $variant="danger" $size="sm" onClick={()=>handleDelete(viewing.id)}>Delete</Btn>
+                <Btn $variant="ghost" $size="sm" onClick={()=>{ markStatus(viewing.id,'archived'); setViewing(null) }}>Archive</Btn>
+              </div>
+              <div style={{display:'flex',gap:8}}>
+                <Btn $variant="ghost" onClick={()=>setViewing(null)}>Close</Btn>
+                <Btn onClick={()=>{
+                  if (reply.trim()) {
+                    window.open(`mailto:${viewing.email}?subject=Re: ${encodeURIComponent(viewing.subject)}&body=${encodeURIComponent(reply)}`)
+                    markStatus(viewing.id,'replied')
+                    setViewing(null)
+                  }
+                }}>Send Reply</Btn>
+              </div>
             </ModalFooter>
           </ModalBox>
         </ModalOverlay>

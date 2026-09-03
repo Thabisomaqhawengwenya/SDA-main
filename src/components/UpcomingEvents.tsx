@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react'
 import styled, { keyframes } from 'styled-components'
 import { Link } from 'react-router-dom'
+import { subscribeEvents } from '../services/eventsService'
 
 // ── Animations ────────────────────────────────────────────────────────────────
 
@@ -317,6 +319,29 @@ const ViewEventBtn = styled(Link)`
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function UpcomingEvents() {
+  const [displayEvents, setDisplayEvents] = useState(events)
+
+  useEffect(() => {
+    const unsub = subscribeEvents((items) => {
+      const published = items.filter(e => e.status === 'published')
+      if (published.length > 0) {
+        const mapped = published.slice(0, 3).map((e, idx) => ({
+          id: idx + 1,
+          category: e.category,
+          categoryColor: e.categoryColor || '#3b82f6',
+          title: e.title,
+          date: new Date(e.date).toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+          time: e.time,
+          location: e.location || 'Main Sanctuary',
+          description: e.description,
+          image: e.image || 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=800&q=80',
+        }))
+        setDisplayEvents(mapped)
+      }
+    })
+    return () => unsub?.()
+  }, [])
+
   return (
     <Section>
       <Container>
@@ -335,7 +360,7 @@ export default function UpcomingEvents() {
         </Header>
 
         <Grid>
-          {events.map((event, i) => (
+          {displayEvents.map((event, i) => (
             <Card key={event.id} style={{ animationDelay: `${i * 0.1}s` }}>
               <ImageWrap>
                 <CardImage src={event.image} alt={event.title} loading="lazy" />

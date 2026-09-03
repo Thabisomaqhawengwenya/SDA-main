@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import styled from 'styled-components'
+import { subscribeEvents } from '../services/eventsService'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -701,6 +702,7 @@ const QuoteText = styled.p`
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function EventsPage() {
+  const [liveEvents, setLiveEvents] = useState<ChurchEvent[]>(EVENTS)
   const [searchTerm] = useState('')
   const [view, setView] = useState<'list' | 'month'>('list')
   const [currentMonth, setCurrentMonth] = useState<Date>(() => {
@@ -710,17 +712,39 @@ export default function EventsPage() {
   const [selectedEvent, setSelectedEvent] = useState<ChurchEvent | null>(null)
   const [showPast, setShowPast] = useState(false)
 
+  useEffect(() => {
+    const unsub = subscribeEvents((items) => {
+      const published = items.filter(e => e.status === 'published')
+      if (published.length > 0) {
+        const mapped: ChurchEvent[] = published.map((e, idx) => ({
+          id: idx + 1,
+          title: e.title,
+          date: new Date(e.date + (e.time ? `T${e.time.replace(/[^0-9:]/g, '') || '00:00'}` : '')),
+          endDate: e.endTime ? new Date(e.date) : undefined,
+          time: e.time,
+          category: e.category,
+          categoryColor: e.categoryColor || '#3b82f6',
+          description: e.description,
+          location: e.location,
+          isRecurring: e.recurring,
+        }))
+        setLiveEvents(mapped)
+      }
+    })
+    return () => unsub?.()
+  }, [])
+
   const now = new Date()
   // Midnight today — so today's events still show
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
   const allEvents = useMemo(() => {
-    return EVENTS.filter(
+    return liveEvents.filter(
       (e) =>
         e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         e.category.toLowerCase().includes(searchTerm.toLowerCase()),
     ).sort((a, b) => a.date.getTime() - b.date.getTime())
-  }, [searchTerm])
+  }, [liveEvents, searchTerm])
 
   const upcomingEvents = useMemo(() =>
     allEvents.filter(e => {

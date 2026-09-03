@@ -2,12 +2,17 @@ import { useState, useRef, useCallback } from 'react'
 import styled, { keyframes, css } from 'styled-components'
 import { adminTheme as t } from '../adminTheme'
 import { Label, FormGroup } from './ui'
+import { uploadMedia } from '../../services/storageService'
 
 // ── Animations ────────────────────────────────────────────────────────────────
 
 const pulse = keyframes`
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.5; }
+`
+
+const spin = keyframes`
+  to { transform: rotate(360deg); }
 `
 
 // ── Styled ────────────────────────────────────────────────────────────────────
@@ -134,6 +139,14 @@ const FileInfo = styled.p`
   color: ${t.colors.textMuted}; margin: 0;
 `
 
+const Spinner = styled.div`
+  width: 28px; height: 28px;
+  border: 3px solid rgba(29, 161, 242, 0.2);
+  border-top-color: ${t.colors.primary};
+  border-radius: 50%;
+  animation: ${spin} 0.8s linear infinite;
+`
+
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface ImageUploaderProps {
@@ -141,26 +154,43 @@ interface ImageUploaderProps {
   value?: string          // current image URL
   onChange: (url: string) => void
   aspectRatio?: string    // e.g. '16/7' or '16/9'
+  folder?: string
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function ImageUploader({ label = 'Image', value, onChange, aspectRatio = '16 / 7' }: ImageUploaderProps) {
+export default function ImageUploader({
+  label = 'Image',
+  value,
+  onChange,
+  aspectRatio = '16 / 7',
+  folder = 'uploads'
+}: ImageUploaderProps) {
   const [dragging, setDragging]     = useState(false)
+  const [uploading, setUploading]   = useState(false)
   const [showUrl, setShowUrl]       = useState(false)
   const [urlInput, setUrlInput]     = useState('')
   const [fileName, setFileName]     = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleFile = useCallback((file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     if (!file.type.startsWith('image/')) return
     setFileName(file.name)
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      if (e.target?.result) onChange(e.target.result as string)
+    setUploading(true)
+    try {
+      const url = await uploadMedia(folder, file, `${Date.now()}_${file.name.replace(/\s+/g, '_')}`)
+      onChange(url)
+    } catch (err) {
+      console.warn('Firebase storage upload fallback to local data url:', err)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        if (e.target?.result) onChange(e.target.result as string)
+      }
+      reader.readAsDataURL(file)
+    } finally {
+      setUploading(false)
     }
-    reader.readAsDataURL(file)
-  }, [onChange])
+  }, [onChange, folder])
 
   function onDrop(e: React.DragEvent) {
     e.preventDefault(); setDragging(false)
@@ -190,17 +220,23 @@ export default function ImageUploader({ label = 'Image', value, onChange, aspect
         onClick={() => inputRef.current?.click()}
         style={{ aspectRatio }}
       >
-        {value && <Preview src={value} alt="Preview" />}
-
-        {value ? (
-          <Overlay>
-            <svg viewBox="0 0 24 24" style={{ width: 28, height: 28, stroke: '#fff', fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
-            <OverlayText>Replace image</OverlayText>
-          </Overlay>
+        {uploading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <Spinner />
+            <p style={{ fontSize: 12, color: t.colors.textMuted }}>Uploading to Firebase Storage...</p>
+          </div>
+        ) : value ? (
+          <>
+            <Preview src={value} alt="Preview" />
+            <Overlay>
+              <svg viewBox="0 0 24 24" style={{ width: 28, height: 28, stroke: '#fff', fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <OverlayText>Replace image</OverlayText>
+            </Overlay>
+          </>
         ) : (
           <>
             <UploadIcon $dragging={dragging}>
@@ -212,7 +248,7 @@ export default function ImageUploader({ label = 'Image', value, onChange, aspect
             </UploadIcon>
             <UploadText>
               <p>{dragging ? 'Drop image here' : 'Click or drag to upload'}</p>
-              <p>PNG, JPG, WEBP — max 10MB</p>
+              <p>PNG, JPG, WEBP — Cloud Storage</p>
             </UploadText>
           </>
         )}

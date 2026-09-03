@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import styled from 'styled-components'
 import { Icon } from '@iconify/react'
+import { createDonation } from '../services/givingService'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -590,11 +591,30 @@ export default function GivingPage() {
 
   const grandTotal = CATEGORIES.reduce((s, c) => s + catTotal(c), 0)
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (grandTotal <= 0) {
       alert('Please enter a donation amount before continuing.')
       return
     }
+
+    try {
+      for (const cat of CATEGORIES) {
+        const amount = catTotal(cat)
+        if (amount > 0) {
+          await createDonation({
+            donor: 'Online Donor',
+            amount,
+            category: cat.label,
+            date: new Date().toISOString().split('T')[0],
+            method: 'Online Giving',
+            isAnonymous: true,
+          })
+        }
+      }
+    } catch (err) {
+      console.warn('Error saving donation to Firestore:', err)
+    }
+
     setShowSuccessModal(true)
   }
 

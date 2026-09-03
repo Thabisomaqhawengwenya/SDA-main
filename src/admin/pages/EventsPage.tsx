@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { adminTheme as t } from '../adminTheme'
 import {
@@ -10,6 +10,9 @@ import {
 import ImageUploader from '../components/ImageUploader'
 import { mockEvents } from '../mockData'
 import type { AdminEvent, EventStatus } from '../adminTypes'
+import { subscribeEvents, createEvent, updateEvent, deleteEvent } from '../../services/eventsService'
+import { logActivity } from '../../services/activityService'
+import { useAuth } from '../../context/AuthContext'
 
 const CategoryDot = styled.span<{$color:string}>`
   display:inline-block; width:8px; height:8px; border-radius:50%;
@@ -28,6 +31,18 @@ export default function EventsAdminPage() {
   const [editing, setEditing]       = useState<AdminEvent | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<AdminEvent | null>(null)
   const [form, setForm]             = useState<Partial<AdminEvent>>({})
+  const { adminProfile, user }      = useAuth()
+
+  const userName = adminProfile?.name || user?.displayName || 'Admin'
+
+  useEffect(() => {
+    const unsub = subscribeEvents((items) => {
+      if (items.length > 0) {
+        setEvents(items)
+      }
+    })
+    return () => unsub?.()
+  }, [])
 
   const filtered = events.filter(e => {
     const matchSearch = e.title.toLowerCase().includes(search.toLowerCase()) || e.location.toLowerCase().includes(search.toLowerCase())
@@ -50,31 +65,63 @@ export default function EventsAdminPage() {
     setShowModal(true)
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.title?.trim()) return
-    if (editing) {
-      setEvents(prev => prev.map(e => e.id === editing.id ? { ...e, ...form } as AdminEvent : e))
-    } else {
-      const newEv: AdminEvent = {
-        id: `e${Date.now()}`, createdAt: new Date().toISOString(),
-        title: form.title!, date: form.date || '', time: form.time || '',
-        location: form.location || '', category: form.category || 'General',
-        categoryColor: form.categoryColor || '#3b82f6',
-        description: form.description || '', status: form.status as EventStatus || 'draft',
+    try {
+      if (editing) {
+        await updateEvent(editing.id, form)
+        await logActivity(userName, 'Updated', `Event: ${form.title}`)
+      } else {
+        const newEv: Omit<AdminEvent, 'id'> = {
+          createdAt: new Date().toISOString(),
+          title: form.title!, date: form.date || '', time: form.time || '',
+          location: form.location || '', category: form.category || 'General',
+          categoryColor: form.categoryColor || '#3b82f6',
+          description: form.description || '', status: (form.status as EventStatus) || 'draft',
+          image: form.image || '', speaker: form.speaker || '',
+        }
+        await createEvent(newEv)
+        await logActivity(userName, 'Created', `Event: ${newEv.title}`)
       }
-      setEvents(prev => [newEv, ...prev])
+    } catch (err) {
+      console.warn('Firestore event save error, updating local state:', err)
+      if (editing) {
+        setEvents(prev => prev.map(e => e.id === editing.id ? { ...e, ...form } as AdminEvent : e))
+      } else {
+        const fallbackEv: AdminEvent = {
+          id: `e${Date.now()}`, createdAt: new Date().toISOString(),
+          title: form.title!, date: form.date || '', time: form.time || '',
+          location: form.location || '', category: form.category || 'General',
+          categoryColor: form.categoryColor || '#3b82f6',
+          description: form.description || '', status: (form.status as EventStatus) || 'draft',
+        }
+        setEvents(prev => [fallbackEv, ...prev])
+      }
     }
     setShowModal(false)
   }
 
-  function handleDelete() {
-    if (deleteTarget) setEvents(prev => prev.filter(e => e.id !== deleteTarget.id))
+  async function handleDelete() {
+    if (!deleteTarget) return
+    try {
+      await deleteEvent(deleteTarget.id)
+      await logActivity(userName, 'Deleted', `Event: ${deleteTarget.title}`)
+    } catch (err) {
+      console.warn('Firestore event delete error:', err)
+      setEvents(prev => prev.filter(e => e.id !== deleteTarget.id))
+    }
     setDeleteTarget(null)
   }
 
-  function toggleStatus(ev: AdminEvent) {
-    setEvents(prev => prev.map(e => e.id === ev.id
-      ? { ...e, status: e.status === 'published' ? 'draft' : 'published' } : e))
+  async function toggleStatus(ev: AdminEvent) {
+    const nextStatus = ev.status === 'published' ? 'draft' : 'published'
+    try {
+      await updateEvent(ev.id, { status: nextStatus })
+      await logActivity(userName, nextStatus === 'published' ? 'Published' : 'Unpublished', `Event: ${ev.title}`)
+    } catch (err) {
+      console.warn('Firestore toggleStatus error:', err)
+      setEvents(prev => prev.map(e => e.id === ev.id ? { ...e, status: nextStatus } : e))
+    }
   }
 
   return (
@@ -127,7 +174,7 @@ export default function EventsAdminPage() {
                   <Tr key={ev.id}>
                     <Td><TitleCell>
                       {ev.image && <img src={ev.image} alt="" style={{width:36,height:28,objectFit:'cover',borderRadius:4,marginRight:10,flexShrink:0}}/>}
-                      <CategoryDot $color={ev.categoryColor}/>{ev.title}
+                      <CategoryDot $color={ev.categoryColor || '#3b82f6'}/>{ev.title}
                     </TitleCell></Td>
                     <Td>{new Date(ev.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</Td>
                     <Td>{ev.time}</Td>
@@ -192,10 +239,11 @@ export default function EventsAdminPage() {
                 <Textarea placeholder="Event description…" value={form.description||''} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/>
               </FormGroup>
               <ImageUploader
-                label="Event Image"
+                label="Event Image (Flyer / Photo)"
                 value={form.image||''}
                 onChange={url=>setForm(f=>({...f,image:url}))}
                 aspectRatio="16 / 7"
+                folder="events"
               />
             </ModalBody>
             <ModalFooter>

@@ -1,14 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { adminTheme as t } from '../adminTheme'
 import {
   PageShell, PageHeader, PageTitleBlock, PageTitle, PageSubtitle, PageActions,
   Card, CardHeader, CardTitle, CardBody, Btn,
   ModalOverlay, ModalBox, ModalHead, ModalTitle, ModalBody, ModalFooter, CloseBtn,
-  FormGroup, FormGrid, Label, Input, Textarea, Select, EmptyState, ConfirmDialog,
+  FormGroup, FormGrid, Label, Input, Textarea, Select, ConfirmDialog,
 } from '../components/ui'
 import { mockServices } from '../mockData'
 import type { ChurchService } from '../adminTypes'
+import { subscribeServices, createService, updateService, deleteService } from '../../services/servicesService'
+import { logActivity } from '../../services/activityService'
+import { useAuth } from '../../context/AuthContext'
 
 const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 
@@ -31,6 +34,16 @@ export default function ServicesPage() {
   const [editing, setEditing]     = useState<ChurchService | null>(null)
   const [deleteTarget, setDel]    = useState<ChurchService | null>(null)
   const [form, setForm]           = useState<Partial<ChurchService>>({})
+  const { adminProfile, user }    = useAuth()
+
+  const userName = adminProfile?.name || user?.displayName || 'Admin'
+
+  useEffect(() => {
+    const unsub = subscribeServices((items) => {
+      if (items.length > 0) setServices(items)
+    })
+    return () => unsub?.()
+  }, [])
 
   const byDay = DAYS.reduce<Record<string, ChurchService[]>>((acc, day) => {
     acc[day] = services.filter(s => s.day === day).sort((a, b) => a.time.localeCompare(b.time))
@@ -40,110 +53,136 @@ export default function ServicesPage() {
   function openCreate() { setEditing(null); setForm({recurring:true,day:'Saturday'}); setModal(true) }
   function openEdit(s: ChurchService) { setEditing(s); setForm({...s}); setModal(true) }
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.name?.trim()) return
-    if (editing) {
-      setServices(prev=>prev.map(s=>s.id===editing.id?{...s,...form} as ChurchService:s))
-    } else {
-      const n: ChurchService = {
-        id:`sv${Date.now()}`, name:form.name!, day:form.day||'Saturday',
-        time:form.time||'', description:form.description||'',
-        speaker:form.speaker, livestreamLink:form.livestreamLink,
-        recurring:form.recurring||true,
+    try {
+      if (editing) {
+        await updateService(editing.id, form)
+        await logActivity(userName, 'Updated', `Service: ${form.name}`)
+      } else {
+        const n: Omit<ChurchService, 'id'> = {
+          name: form.name!, day: form.day || 'Saturday',
+          time: form.time || '', description: form.description || '',
+          speaker: form.speaker || '', livestreamLink: form.livestreamLink || '',
+          recurring: form.recurring ?? true,
+        }
+        await createService(n)
+        await logActivity(userName, 'Created', `Service: ${n.name}`)
       }
-      setServices(prev=>[...prev,n])
+    } catch (err) {
+      console.warn('Firestore service save error:', err)
+      if (editing) {
+        setServices(prev=>prev.map(s=>s.id===editing.id?{...s,...form} as ChurchService:s))
+      } else {
+        const fallback: ChurchService = {
+          id:`sv${Date.now()}`, name:form.name!, day:form.day||'Saturday',
+          time:form.time||'', description:form.description||'',
+          speaker:form.speaker, livestreamLink:form.livestreamLink,
+          recurring:form.recurring||true,
+        }
+        setServices(prev=>[...prev,fallback])
+      }
     }
     setModal(false)
   }
 
-  function handleDelete() {
-    if (deleteTarget) setServices(prev=>prev.filter(s=>s.id!==deleteTarget.id))
+  async function handleDelete() {
+    if (!deleteTarget) return
+    try {
+      await deleteService(deleteTarget.id)
+      await logActivity(userName, 'Deleted', `Service: ${deleteTarget.name}`)
+    } catch (err) {
+      console.warn('Firestore service delete error:', err)
+      setServices(prev=>prev.filter(s=>s.id!==deleteTarget.id))
+    }
     setDel(null)
   }
-
-  const activeDays = DAYS.filter(d => byDay[d].length > 0)
 
   return (
     <PageShell>
       <PageHeader>
         <PageTitleBlock>
-          <PageTitle>Services</PageTitle>
-          <PageSubtitle>Manage recurring church service schedules</PageSubtitle>
+          <PageTitle>Services & Times</PageTitle>
+          <PageSubtitle>Configure worship services, prayer meetings, and Sabbath schedules</PageSubtitle>
         </PageTitleBlock>
         <PageActions><Btn onClick={openCreate}>+ Add Service</Btn></PageActions>
       </PageHeader>
 
-      {activeDays.length === 0 ? (
-        <Card><EmptyState
-          icon={<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>}
-          title="No services scheduled" description="Add your church service times here."
-          action={<Btn onClick={openCreate}>Add Service</Btn>}
-        /></Card>
-      ) : (
-        activeDays.map(day => (
-          <Card key={day} style={{marginBottom:20}}>
-            <CardHeader>
-              <CardTitle style={{display:'flex',alignItems:'center',gap:8}}>
-                <span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',background:t.colors.primary}}/>
-                {day}
-              </CardTitle>
-              <Btn $variant="ghost" $size="sm" onClick={openCreate}>+ Add</Btn>
-            </CardHeader>
-            <CardBody>
-              {byDay[day].map(s => (
-                <ServiceRow key={s.id}>
-                  <TimeBox>{s.time}</TimeBox>
-                  <ServiceInfo>
-                    <ServiceName>{s.name}</ServiceName>
-                    <ServiceMeta>
-                      {s.speaker && <span>🎤 {s.speaker} · </span>}
-                      {s.description}
-                      {s.livestreamLink && <span style={{color:t.colors.primary}}> · 🔴 Live</span>}
-                    </ServiceMeta>
-                  </ServiceInfo>
-                  <ActionGroup>
-                    <Btn $variant="ghost" $size="sm" onClick={()=>openEdit(s)}>Edit</Btn>
-                    <Btn $variant="danger" $size="sm" onClick={()=>setDel(s)}>Delete</Btn>
-                  </ActionGroup>
-                </ServiceRow>
-              ))}
-            </CardBody>
-          </Card>
-        ))
-      )}
+      <div style={{display:'flex',flexDirection:'column',gap:20}}>
+        {DAYS.map(day => {
+          const dayServices = byDay[day] || []
+          if (dayServices.length === 0) return null
+          return (
+            <Card key={day}>
+              <CardHeader><CardTitle>{day}</CardTitle></CardHeader>
+              <CardBody style={{paddingTop:0}}>
+                {dayServices.map(s => (
+                  <ServiceRow key={s.id}>
+                    <TimeBox>{s.time}</TimeBox>
+                    <ServiceInfo>
+                      <ServiceName>{s.name}</ServiceName>
+                      <ServiceMeta>
+                        {s.speaker && `🎤 ${s.speaker} &bull; `}
+                        {s.description}
+                      </ServiceMeta>
+                    </ServiceInfo>
+                    <ActionGroup>
+                      <Btn $variant="ghost" $size="sm" onClick={()=>openEdit(s)}>Edit</Btn>
+                      <Btn $variant="danger" $size="sm" onClick={()=>setDel(s)}>Delete</Btn>
+                    </ActionGroup>
+                  </ServiceRow>
+                ))}
+              </CardBody>
+            </Card>
+          )
+        })}
+      </div>
 
+      {/* Modal */}
       {showModal && (
         <ModalOverlay onClick={()=>setModal(false)}>
           <ModalBox onClick={e=>e.stopPropagation()}>
             <ModalHead>
-              <ModalTitle>{editing?'Edit Service':'Add Service'}</ModalTitle>
+              <ModalTitle>{editing ? 'Edit Service' : 'Add Church Service'}</ModalTitle>
               <CloseBtn onClick={()=>setModal(false)}><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></CloseBtn>
             </ModalHead>
             <ModalBody>
-              <FormGroup><Label>Service Name *</Label><Input value={form.name||''} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/></FormGroup>
+              <FormGroup><Label>Service Name *</Label>
+                <Input placeholder="e.g. Divine Worship Service" value={form.name||''} onChange={e=>setForm(f=>({...f,name:e.target.value}))} />
+              </FormGroup>
               <FormGrid>
-                <FormGroup><Label>Day</Label>
+                <FormGroup><Label>Day of Week</Label>
                   <Select value={form.day||'Saturday'} onChange={e=>setForm(f=>({...f,day:e.target.value}))}>
                     {DAYS.map(d=><option key={d} value={d}>{d}</option>)}
                   </Select>
                 </FormGroup>
-                <FormGroup><Label>Time</Label><Input type="time" value={form.time||''} onChange={e=>setForm(f=>({...f,time:e.target.value}))}/></FormGroup>
+                <FormGroup><Label>Time *</Label><Input placeholder="11:30 AM" value={form.time||''} onChange={e=>setForm(f=>({...f,time:e.target.value}))}/></FormGroup>
               </FormGrid>
-              <FormGroup><Label>Speaker (optional)</Label><Input value={form.speaker||''} onChange={e=>setForm(f=>({...f,speaker:e.target.value}))}/></FormGroup>
-              <FormGroup><Label>Livestream Link</Label><Input placeholder="https://youtube.com/…" value={form.livestreamLink||''} onChange={e=>setForm(f=>({...f,livestreamLink:e.target.value}))}/></FormGroup>
-              <FormGroup><Label>Description</Label><Textarea value={form.description||''} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/></FormGroup>
+              <FormGroup><Label>Regular Speaker / Teacher</Label>
+                <Input placeholder="e.g. Pastor Ngwenya" value={form.speaker||''} onChange={e=>setForm(f=>({...f,speaker:e.target.value}))}/>
+              </FormGroup>
+              <FormGroup><Label>Livestream Link (optional)</Label>
+                <Input placeholder="https://youtube.com/..." value={form.livestreamLink||''} onChange={e=>setForm(f=>({...f,livestreamLink:e.target.value}))}/>
+              </FormGroup>
+              <FormGroup><Label>Description</Label>
+                <Textarea placeholder="What happens during this service…" value={form.description||''} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/>
+              </FormGroup>
             </ModalBody>
             <ModalFooter>
               <Btn $variant="ghost" onClick={()=>setModal(false)}>Cancel</Btn>
-              <Btn onClick={handleSave}>{editing?'Save Changes':'Add Service'}</Btn>
+              <Btn onClick={handleSave}>{editing ? 'Save Changes' : 'Save Service'}</Btn>
             </ModalFooter>
           </ModalBox>
         </ModalOverlay>
       )}
 
       {deleteTarget && (
-        <ConfirmDialog title="Delete Service" message={`Delete "${deleteTarget.name}"? This cannot be undone.`}
-          onConfirm={handleDelete} onCancel={()=>setDel(null)}/>
+        <ConfirmDialog
+          title="Delete Service"
+          message={`Are you sure you want to delete "${deleteTarget.name}"?`}
+          onConfirm={handleDelete}
+          onCancel={()=>setDel(null)}
+        />
       )}
     </PageShell>
   )

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { adminTheme as t } from '../adminTheme'
 import {
@@ -11,6 +11,9 @@ import {
 } from '../components/ui'
 import { mockPrayerRequests } from '../mockData'
 import type { PrayerRequest, PrayerStatus } from '../adminTypes'
+import { subscribePrayerRequests, updatePrayerStatus, deletePrayerRequest } from '../../services/prayerService'
+import { logActivity } from '../../services/activityService'
+import { useAuth } from '../../context/AuthContext'
 
 const PrivacyTag = styled.span<{$private:boolean}>`
   font-family:${t.fonts.sans}; font-size:11px; font-weight:600;
@@ -38,6 +41,16 @@ export default function PrayerRequestsPage() {
   const [search, setSearch]       = useState('')
   const [filterStatus, setFilter] = useState<string>('all')
   const [viewing, setViewing]     = useState<PrayerRequest | null>(null)
+  const { adminProfile, user }    = useAuth()
+
+  const userName = adminProfile?.name || user?.displayName || 'Admin'
+
+  useEffect(() => {
+    const unsub = subscribePrayerRequests((items) => {
+      if (items.length > 0) setRequests(items)
+    })
+    return () => unsub?.()
+  }, [])
 
   const filtered = requests.filter(r => {
     const matchSearch = r.request.toLowerCase().includes(search.toLowerCase()) ||
@@ -46,8 +59,25 @@ export default function PrayerRequestsPage() {
     return matchSearch && matchStatus
   })
 
-  function cycleStatus(r: PrayerRequest) {
-    setRequests(prev=>prev.map(x=>x.id===r.id?{...x,status:NEXT_STATUS[x.status]}:x))
+  async function cycleStatus(r: PrayerRequest) {
+    const next = NEXT_STATUS[r.status]
+    try {
+      await updatePrayerStatus(r.id, next)
+      await logActivity(userName, 'Updated Status', `Prayer Request by ${r.name} -> ${next}`)
+    } catch (err) {
+      console.warn('Firestore prayer status error:', err)
+      setRequests(prev=>prev.map(x=>x.id===r.id?{...x,status:next}:x))
+    }
+  }
+
+  async function handleDelete(id: string) {
+    try {
+      await deletePrayerRequest(id)
+      await logActivity(userName, 'Deleted', `Prayer Request #${id}`)
+    } catch (err) {
+      setRequests(prev => prev.filter(r => r.id !== id))
+    }
+    setViewing(null)
   }
 
   const counts = {
@@ -61,41 +91,33 @@ export default function PrayerRequestsPage() {
       <PageHeader>
         <PageTitleBlock>
           <PageTitle>Prayer Requests</PageTitle>
-          <PageSubtitle>Manage and pray for submitted prayer requests</PageSubtitle>
+          <PageSubtitle>Manage requests submitted online and assign them to the prayer ministry team</PageSubtitle>
         </PageTitleBlock>
       </PageHeader>
 
+      <div style={{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap'}}>
+        <Btn $variant={filterStatus==='all'?'primary':'secondary'} $size="sm" onClick={()=>setFilter('all')}>All ({requests.length})</Btn>
+        <Btn $variant={filterStatus==='new'?'primary':'secondary'} $size="sm" onClick={()=>setFilter('new')}>New ({counts.new})</Btn>
+        <Btn $variant={filterStatus==='praying'?'primary':'secondary'} $size="sm" onClick={()=>setFilter('praying')}>Praying ({counts.praying})</Btn>
+        <Btn $variant={filterStatus==='answered'?'primary':'secondary'} $size="sm" onClick={()=>setFilter('answered')}>Answered ({counts.answered})</Btn>
+      </div>
+
       <PrivacyBanner>
         <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        This section is private. Prayer requests may contain sensitive personal information.
-        Handle with care and respect confidentiality.
+        Private requests are confidential and visible only to authorized pastoral and prayer leaders.
       </PrivacyBanner>
-
-      {/* Summary cards */}
-      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:24}}>
-        {[
-          {label:'New Requests',      value:counts.new,      color:t.colors.danger,  bg:t.colors.dangerLight},
-          {label:'Being Prayed For',  value:counts.praying,  color:t.colors.warning, bg:t.colors.warningLight},
-          {label:'Answered Prayers',  value:counts.answered, color:t.colors.success, bg:t.colors.successLight},
-        ].map(c=>(
-          <div key={c.label} style={{background:c.bg,borderRadius:t.radius.md,padding:'16px 20px',border:`1px solid ${c.color}20`}}>
-            <p style={{fontFamily:t.fonts.sans,fontSize:28,fontWeight:700,color:c.color,margin:'0 0 4px'}}>{c.value}</p>
-            <p style={{fontFamily:t.fonts.sans,fontSize:13,color:c.color,margin:0,opacity:0.8}}>{c.label}</p>
-          </div>
-        ))}
-      </div>
 
       <Card>
         <Toolbar style={{padding:'16px 20px 0'}}>
           <ToolbarLeft>
             <SearchWrap>
               <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
-              <SearchInput placeholder="Search requests…" value={search} onChange={e=>setSearch(e.target.value)}/>
+              <SearchInput placeholder="Search prayer requests…" value={search} onChange={e=>setSearch(e.target.value)} />
             </SearchWrap>
-            <Select style={{width:160}} value={filterStatus} onChange={e=>setFilter(e.target.value)}>
+            <Select style={{width:140}} value={filterStatus} onChange={e=>setFilter(e.target.value)}>
               <option value="all">All Status</option>
               <option value="new">New</option>
-              <option value="praying">Being Prayed For</option>
+              <option value="praying">Praying</option>
               <option value="answered">Answered</option>
               <option value="archived">Archived</option>
             </Select>
@@ -108,28 +130,27 @@ export default function PrayerRequestsPage() {
         {filtered.length === 0 ? (
           <EmptyState
             icon={<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>}
-            title="No prayer requests" description="Prayer requests submitted from the website will appear here."
+            title="No prayer requests found"
+            description="Submitted prayer requests will appear here."
           />
         ) : (
           <TableWrap style={{borderRadius:0,border:'none',borderTop:`1px solid ${t.colors.border}`,marginTop:16}}>
             <Table>
-              <Thead><tr>
-                <Th>Name</Th><Th>Request</Th><Th>Category</Th>
-                <Th>Privacy</Th><Th>Status</Th><Th>Date</Th><Th>Actions</Th>
-              </tr></Thead>
+              <Thead>
+                <tr>
+                  <Th>Submitted By</Th><Th>Category</Th><Th>Request</Th>
+                  <Th>Confidential</Th><Th>Date</Th><Th>Status</Th><Th>Actions</Th>
+                </tr>
+              </Thead>
               <Tbody>
                 {filtered.map(r => (
                   <Tr key={r.id}>
                     <Td style={{fontWeight:500}}>{r.name}</Td>
-                    <Td style={{maxWidth:260}}>
-                      <span style={{fontFamily:t.fonts.sans,fontSize:13,color:t.colors.textSecondary,display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>
-                        {r.request}
-                      </span>
-                    </Td>
-                    <Td>{r.category}</Td>
-                    <Td><PrivacyTag $private={r.isPrivate}>{r.isPrivate?'🔒 Private':'🌐 Public'}</PrivacyTag></Td>
-                    <Td><Badge $variant={statusVariant(r.status)}>{r.status}</Badge></Td>
+                    <Td><Badge $variant="default">{r.category}</Badge></Td>
+                    <Td style={{maxWidth:260,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.request}</Td>
+                    <Td><PrivacyTag $private={r.isPrivate}>{r.isPrivate ? '🔒 Confidential' : 'Public'}</PrivacyTag></Td>
                     <Td>{new Date(r.submittedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</Td>
+                    <Td><Badge $variant={statusVariant(r.status)}>{r.status}</Badge></Td>
                     <Td>
                       <ActionGroup>
                         <Btn $variant="ghost" $size="sm" onClick={()=>setViewing(r)}>View</Btn>
@@ -144,38 +165,34 @@ export default function PrayerRequestsPage() {
         )}
       </Card>
 
-      {/* View modal */}
+      {/* View detail modal */}
       {viewing && (
         <ModalOverlay onClick={()=>setViewing(null)}>
           <ModalBox onClick={e=>e.stopPropagation()}>
             <ModalHead>
-              <ModalTitle>Prayer Request</ModalTitle>
+              <ModalTitle>Prayer Request from {viewing.name}</ModalTitle>
               <CloseBtn onClick={()=>setViewing(null)}><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></CloseBtn>
             </ModalHead>
             <ModalBody>
-              <div style={{display:'flex',gap:10,flexWrap:'wrap',marginBottom:16}}>
-                <Badge $variant={statusVariant(viewing.status)}>{viewing.status}</Badge>
-                <Badge $variant={viewing.isPrivate?'danger':'success'}>{viewing.isPrivate?'Private':'Public'}</Badge>
+              <div style={{display:'flex',gap:10,marginBottom:16}}>
                 <Badge $variant="default">{viewing.category}</Badge>
+                <Badge $variant={statusVariant(viewing.status)}>{viewing.status}</Badge>
+                <PrivacyTag $private={viewing.isPrivate}>{viewing.isPrivate ? '🔒 Confidential' : 'Public'}</PrivacyTag>
               </div>
-              <FormGroup><Label>From</Label>
-                <p style={{fontFamily:t.fonts.sans,fontSize:14,color:t.colors.text,margin:0}}>{viewing.name}</p>
-              </FormGroup>
-              <FormGroup><Label>Submitted</Label>
-                <p style={{fontFamily:t.fonts.sans,fontSize:14,color:t.colors.text,margin:0}}>{new Date(viewing.submittedAt).toLocaleString('en-US',{dateStyle:'full',timeStyle:'short'})}</p>
-              </FormGroup>
               <FormGroup><Label>Prayer Request</Label>
-                <p style={{fontFamily:t.fonts.sans,fontSize:14,color:t.colors.textSecondary,lineHeight:1.7,margin:0,padding:'12px 14px',background:t.colors.surfaceAlt,borderRadius:t.radius.md}}>
+                <div style={{fontFamily:t.fonts.sans,fontSize:14,color:t.colors.text,lineHeight:1.7,background:t.colors.surfaceAlt,padding:16,borderRadius:8}}>
                   {viewing.request}
-                </p>
+                </div>
               </FormGroup>
-              {viewing.assignedTo && <FormGroup><Label>Assigned To</Label>
-                <p style={{fontFamily:t.fonts.sans,fontSize:14,color:t.colors.text,margin:0}}>{viewing.assignedTo}</p>
-              </FormGroup>}
+              <p style={{fontFamily:t.fonts.sans,fontSize:12,color:t.colors.textMuted,margin:'12px 0 0'}}>
+                Submitted: {new Date(viewing.submittedAt).toLocaleString('en-US')}
+              </p>
             </ModalBody>
             <ModalFooter>
-              <Btn $variant="ghost" onClick={()=>setViewing(null)}>Close</Btn>
-              <Btn onClick={()=>{cycleStatus(viewing);setViewing(null)}}>{STATUS_LABEL[viewing.status]}</Btn>
+              <Btn $variant="danger" $size="sm" onClick={()=>handleDelete(viewing.id)}>Delete</Btn>
+              <Btn $variant="secondary" onClick={()=>{ cycleStatus(viewing); setViewing(null) }}>
+                {STATUS_LABEL[viewing.status]}
+              </Btn>
             </ModalFooter>
           </ModalBox>
         </ModalOverlay>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import styled, { keyframes } from 'styled-components'
 import JoinUs from '../components/JoinUs'
+import { createContactMessage } from '../services/contactService'
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -342,12 +343,25 @@ export default function ContactPage() {
     return newErrors
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const validationErrors = validate()
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
     } else {
+      try {
+        await createContactMessage({
+          sender: formData.name.trim(),
+          email: formData.email.trim(),
+          subject: formData.subject.trim(),
+          message: formData.message.trim(),
+          receivedAt: new Date().toISOString(),
+          status: 'new',
+          isImportant: false,
+        })
+      } catch (err) {
+        console.warn('Error saving message to Firestore, proceeding with confirmation:', err)
+      }
       setIsSubmitted(true)
     }
   }

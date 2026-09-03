@@ -189,10 +189,11 @@ export function StatCard({ label, value, icon, trend, trendUp,
 
 // ── Badge ─────────────────────────────────────────────────────────────────────
 
-export type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info' | 'purple' | 'accent'
+export type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'purple' | 'accent'
 
 const badgeStyles: Record<BadgeVariant, string> = {
   default: `background:${t.colors.surfaceAlt};color:${t.colors.textSecondary};`,
+  primary: `background:${t.colors.primaryLight};color:${t.colors.primary};`,
   success: `background:${t.colors.successLight};color:${t.colors.success};`,
   warning: `background:${t.colors.warningLight};color:${t.colors.warning};`,
   danger:  `background:${t.colors.dangerLight};color:${t.colors.danger};`,

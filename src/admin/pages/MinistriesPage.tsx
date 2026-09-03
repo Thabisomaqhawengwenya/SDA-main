@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { adminTheme as t } from '../adminTheme'
 import {
@@ -9,6 +9,9 @@ import {
 } from '../components/ui'
 import { mockMinistries } from '../mockData'
 import type { Ministry } from '../adminTypes'
+import { subscribeMinistries, createMinistry, updateMinistry, deleteMinistry } from '../../services/ministriesService'
+import { logActivity } from '../../services/activityService'
+import { useAuth } from '../../context/AuthContext'
 
 const MinCard = styled(Card)`display:flex; flex-direction:column;`
 const MinBody  = styled.div`padding:20px; flex:1;`
@@ -29,27 +32,60 @@ export default function MinistriesPage() {
   const [editing, setEditing]       = useState<Ministry | null>(null)
   const [deleteTarget, setDel]      = useState<Ministry | null>(null)
   const [form, setForm]             = useState<Partial<Ministry>>({})
+  const { adminProfile, user }      = useAuth()
 
-  function openCreate() { setEditing(null); setForm({status:'active'}); setModal(true) }
+  const userName = adminProfile?.name || user?.displayName || 'Admin'
+
+  useEffect(() => {
+    const unsub = subscribeMinistries((items) => {
+      if (items.length > 0) setMinistries(items)
+    })
+    return () => unsub?.()
+  }, [])
+
+  function openCreate() { setEditing(null); setForm({status:'active', memberCount: 0}); setModal(true) }
   function openEdit(m: Ministry) { setEditing(m); setForm({...m}); setModal(true) }
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.name?.trim()) return
-    if (editing) {
-      setMinistries(prev=>prev.map(m=>m.id===editing.id?{...m,...form} as Ministry:m))
-    } else {
-      const n: Ministry = {
-        id:`m${Date.now()}`, name:form.name!, description:form.description||'',
-        leader:form.leader||'', contact:form.contact||'', schedule:form.schedule||'',
-        memberCount:0, status:form.status as Ministry['status']||'active',
+    try {
+      if (editing) {
+        await updateMinistry(editing.id, form)
+        await logActivity(userName, 'Updated', `Ministry: ${form.name}`)
+      } else {
+        const n: Omit<Ministry, 'id'> = {
+          name: form.name!, description: form.description || '',
+          leader: form.leader || '', contact: form.contact || '', schedule: form.schedule || '',
+          memberCount: form.memberCount || 0, status: (form.status as Ministry['status']) || 'active',
+        }
+        await createMinistry(n)
+        await logActivity(userName, 'Created', `Ministry: ${n.name}`)
       }
-      setMinistries(prev=>[n,...prev])
+    } catch (err) {
+      console.warn('Firestore ministry save error:', err)
+      if (editing) {
+        setMinistries(prev=>prev.map(m=>m.id===editing.id?{...m,...form} as Ministry:m))
+      } else {
+        const fallback: Ministry = {
+          id:`m${Date.now()}`, name:form.name!, description:form.description||'',
+          leader:form.leader||'', contact:form.contact||'', schedule:form.schedule||'',
+          memberCount:0, status:form.status as Ministry['status']||'active',
+        }
+        setMinistries(prev=>[fallback,...prev])
+      }
     }
     setModal(false)
   }
 
-  function handleDelete() {
-    if (deleteTarget) setMinistries(prev=>prev.filter(m=>m.id!==deleteTarget.id))
+  async function handleDelete() {
+    if (!deleteTarget) return
+    try {
+      await deleteMinistry(deleteTarget.id)
+      await logActivity(userName, 'Deleted', `Ministry: ${deleteTarget.name}`)
+    } catch (err) {
+      console.warn('Firestore ministry delete error:', err)
+      setMinistries(prev=>prev.filter(m=>m.id!==deleteTarget.id))
+    }
     setDel(null)
   }
 
@@ -58,38 +94,40 @@ export default function MinistriesPage() {
       <PageHeader>
         <PageTitleBlock>
           <PageTitle>Ministries</PageTitle>
-          <PageSubtitle>Manage church ministries, leaders, and schedules</PageSubtitle>
+          <PageSubtitle>Manage church departments, leaders, meeting times, and department rosters</PageSubtitle>
         </PageTitleBlock>
         <PageActions><Btn onClick={openCreate}>+ Add Ministry</Btn></PageActions>
       </PageHeader>
 
       {ministries.length === 0 ? (
-        <Card><EmptyState
-          icon={<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>}
-          title="No ministries yet" description="Add your first ministry to get started."
-          action={<Btn onClick={openCreate}>Add Ministry</Btn>}
-        /></Card>
+        <Card>
+          <EmptyState
+            icon={<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
+            title="No ministries configured"
+            description="Add your first church ministry."
+            action={<Btn onClick={openCreate}>Add Ministry</Btn>}
+          />
+        </Card>
       ) : (
         <Grid3>
-          {ministries.map((m,i) => (
+          {ministries.map((m, i) => (
             <MinCard key={m.id}>
               <MinBody>
                 <MinTop>
-                  <Avatar $size={44} $color={COLORS[i % COLORS.length]+'22'} style={{color:COLORS[i%COLORS.length],fontSize:16}}>
-                    {m.name.charAt(0)}
-                  </Avatar>
+                  <Avatar style={{background:COLORS[i % COLORS.length]}}>{m.name.charAt(0)}</Avatar>
                   <MinInfo>
                     <MinName>{m.name}</MinName>
-                    <Badge $variant={statusVariant(m.status)}>{m.status}</Badge>
+                    <MinMeta>👤 {m.leader} &bull; ✉ {m.contact}</MinMeta>
+                    {m.schedule && <MinMeta>🕒 {m.schedule}</MinMeta>}
                   </MinInfo>
                 </MinTop>
-                <MinDesc style={{marginBottom:12}}>{m.description}</MinDesc>
-                <MinMeta>👤 Leader: {m.leader}</MinMeta>
-                <MinMeta>📅 {m.schedule}</MinMeta>
-                <MinMeta>✉️ {m.contact}</MinMeta>
+                <MinDesc>{m.description}</MinDesc>
               </MinBody>
               <MinFooter>
-                <MemberCount>👥 {m.memberCount} members</MemberCount>
+                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                  <Badge $variant={statusVariant(m.status)}>{m.status}</Badge>
+                  <MemberCount>👥 {m.memberCount || 0} members</MemberCount>
+                </div>
                 <ActionGroup>
                   <Btn $variant="ghost" $size="sm" onClick={()=>openEdit(m)}>Edit</Btn>
                   <Btn $variant="danger" $size="sm" onClick={()=>setDel(m)}>Delete</Btn>
@@ -100,38 +138,50 @@ export default function MinistriesPage() {
         </Grid3>
       )}
 
+      {/* Modal */}
       {showModal && (
         <ModalOverlay onClick={()=>setModal(false)}>
           <ModalBox onClick={e=>e.stopPropagation()}>
             <ModalHead>
-              <ModalTitle>{editing?'Edit Ministry':'Add Ministry'}</ModalTitle>
+              <ModalTitle>{editing ? 'Edit Ministry' : 'Add New Ministry'}</ModalTitle>
               <CloseBtn onClick={()=>setModal(false)}><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></CloseBtn>
             </ModalHead>
             <ModalBody>
-              <FormGroup><Label>Ministry Name *</Label><Input value={form.name||''} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/></FormGroup>
-              <FormGrid>
-                <FormGroup><Label>Leader</Label><Input value={form.leader||''} onChange={e=>setForm(f=>({...f,leader:e.target.value}))}/></FormGroup>
-                <FormGroup><Label>Contact Email</Label><Input type="email" value={form.contact||''} onChange={e=>setForm(f=>({...f,contact:e.target.value}))}/></FormGroup>
-              </FormGrid>
-              <FormGroup><Label>Meeting Schedule</Label><Input placeholder="e.g. Every Sabbath after service" value={form.schedule||''} onChange={e=>setForm(f=>({...f,schedule:e.target.value}))}/></FormGroup>
-              <FormGroup><Label>Status</Label>
-                <Select value={form.status||'active'} onChange={e=>setForm(f=>({...f,status:e.target.value as Ministry['status']}))}>
-                  <option value="active">Active</option><option value="inactive">Inactive</option>
-                </Select>
+              <FormGroup><Label>Ministry Name *</Label>
+                <Input placeholder="e.g. Youth Ministry" value={form.name||''} onChange={e=>setForm(f=>({...f,name:e.target.value}))} />
               </FormGroup>
-              <FormGroup><Label>Description</Label><Textarea value={form.description||''} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/></FormGroup>
+              <FormGrid>
+                <FormGroup><Label>Department Leader</Label><Input placeholder="e.g. Bro. Dube" value={form.leader||''} onChange={e=>setForm(f=>({...f,leader:e.target.value}))}/></FormGroup>
+                <FormGroup><Label>Contact Email / Phone</Label><Input placeholder="youth@emganwinisda.org" value={form.contact||''} onChange={e=>setForm(f=>({...f,contact:e.target.value}))}/></FormGroup>
+              </FormGrid>
+              <FormGrid>
+                <FormGroup><Label>Meeting Schedule</Label><Input placeholder="Every Sabbath, 2:00 PM" value={form.schedule||''} onChange={e=>setForm(f=>({...f,schedule:e.target.value}))}/></FormGroup>
+                <FormGroup><Label>Status</Label>
+                  <Select value={form.status||'active'} onChange={e=>setForm(f=>({...f,status:e.target.value as Ministry['status']}))}>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </Select>
+                </FormGroup>
+              </FormGrid>
+              <FormGroup><Label>Ministry Description</Label>
+                <Textarea placeholder="Mission and focus of this department…" value={form.description||''} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/>
+              </FormGroup>
             </ModalBody>
             <ModalFooter>
               <Btn $variant="ghost" onClick={()=>setModal(false)}>Cancel</Btn>
-              <Btn onClick={handleSave}>{editing?'Save Changes':'Add Ministry'}</Btn>
+              <Btn onClick={handleSave}>{editing ? 'Save Changes' : 'Create Ministry'}</Btn>
             </ModalFooter>
           </ModalBox>
         </ModalOverlay>
       )}
 
       {deleteTarget && (
-        <ConfirmDialog title="Delete Ministry" message={`Delete "${deleteTarget.name}"? This cannot be undone.`}
-          onConfirm={handleDelete} onCancel={()=>setDel(null)}/>
+        <ConfirmDialog
+          title="Delete Ministry"
+          message={`Are you sure you want to delete "${deleteTarget.name}"?`}
+          onConfirm={handleDelete}
+          onCancel={()=>setDel(null)}
+        />
       )}
     </PageShell>
   )

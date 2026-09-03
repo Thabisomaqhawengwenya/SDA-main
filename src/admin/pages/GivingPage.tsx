@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { adminTheme as t } from '../adminTheme'
 import {
@@ -6,6 +7,8 @@ import {
   TableWrap, Table, Thead, Th, Tbody, Tr, Td, SectionLabel,
 } from '../components/ui'
 import { mockDonations } from '../mockData'
+import type { Donation } from '../adminTypes'
+import { subscribeDonations } from '../../services/givingService'
 
 const PrivacyBanner = styled.div`
   background:${t.colors.warningLight}; border:1px solid ${t.colors.warning}30;
@@ -30,20 +33,29 @@ const campaigns = [
   { name: 'Community Outreach',     raised: 1200, goal: 3000  },
 ]
 
-const categoryTotals = mockDonations.reduce<Record<string, number>>((acc, d) => {
-  acc[d.category] = (acc[d.category] || 0) + d.amount
-  return acc
-}, {})
-
-const totalMonthly = mockDonations.reduce((s, d) => s + d.amount, 0)
-
 export default function AdminGivingPage() {
+  const [donations, setDonations] = useState<Donation[]>(mockDonations)
+
+  useEffect(() => {
+    const unsub = subscribeDonations((items) => {
+      if (items.length > 0) setDonations(items)
+    })
+    return () => unsub?.()
+  }, [])
+
+  const categoryTotals = donations.reduce<Record<string, number>>((acc, d) => {
+    acc[d.category] = (acc[d.category] || 0) + d.amount
+    return acc
+  }, {})
+
+  const totalMonthly = donations.reduce((s, d) => s + d.amount, 0)
+
   return (
     <PageShell>
       <PageHeader>
         <PageTitleBlock>
           <PageTitle>Giving & Donations</PageTitle>
-          <PageSubtitle>Financial overview and donation management</PageSubtitle>
+          <PageSubtitle>Financial overview, online giving records, and special building projects</PageSubtitle>
         </PageTitleBlock>
       </PageHeader>
 
@@ -53,23 +65,23 @@ export default function AdminGivingPage() {
       </PrivacyBanner>
 
       {/* Summary stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 28 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 28 }}>
         {[
-          { label: 'Total This Month', value: `$${totalMonthly}`, color: t.colors.success, bg: t.colors.successLight },
-          { label: 'Tithe',            value: `$${categoryTotals['Tithe'] || 0}`,         color: t.colors.primary, bg: t.colors.primaryLight },
-          { label: 'Building Fund',    value: `$${categoryTotals['Building Fund'] || 0}`, color: t.colors.purple,  bg: t.colors.purpleLight },
-          { label: 'Outreach',         value: `$${categoryTotals['Community Outreach'] || 0}`, color: t.colors.accent, bg: t.colors.accentLight },
-        ].map(c => (
-          <div key={c.label} style={{ background: c.bg, borderRadius: t.radius.md, padding: '16px 20px', border: `1px solid ${c.color}20` }}>
-            <p style={{ fontFamily: t.fonts.sans, fontSize: 24, fontWeight: 700, color: c.color, margin: '0 0 4px' }}>{c.value}</p>
-            <p style={{ fontFamily: t.fonts.sans, fontSize: 13, color: c.color, margin: 0, opacity: 0.8 }}>{c.label}</p>
-          </div>
+          { label: 'Total Recorded',   value: `$${totalMonthly.toLocaleString()}`, color: t.colors.success, bg: t.colors.successLight },
+          { label: 'Tithe',            value: `$${(categoryTotals['Tithe'] || 0).toLocaleString()}`,         color: t.colors.primary, bg: t.colors.primaryLight },
+          { label: 'Building Fund',    value: `$${(categoryTotals['Building Fund'] || 0).toLocaleString()}`, color: t.colors.purple,  bg: t.colors.purpleLight },
+          { label: 'Outreach & Misc',  value: `$${(categoryTotals['Community Outreach'] || 0).toLocaleString()}`, color: t.colors.warning, bg: t.colors.warningLight },
+        ].map(s => (
+          <Card key={s.label} style={{ padding: '20px' }}>
+            <p style={{ fontFamily: t.fonts.sans, fontSize: 12, color: t.colors.textMuted, margin: '0 0 6px' }}>{s.label}</p>
+            <p style={{ fontFamily: t.fonts.sans, fontSize: 24, fontWeight: 700, color: s.color, margin: 0 }}>{s.value}</p>
+          </Card>
         ))}
       </div>
 
       {/* Campaigns */}
-      <SectionLabel style={{ marginBottom: 16 }}>Giving Campaigns</SectionLabel>
-      <Grid3 style={{ marginBottom: 28 }}>
+      <SectionLabel>Special Projects & Campaigns</SectionLabel>
+      <Grid3 style={{ marginBottom: 32 }}>
         {campaigns.map(c => {
           const pct = Math.min(100, Math.round((c.raised / c.goal) * 100))
           return (
@@ -77,31 +89,32 @@ export default function AdminGivingPage() {
               <CampaignName>{c.name}</CampaignName>
               <ProgressBar $pct={pct} />
               <ProgressLabel>
-                <span style={{ fontWeight: 600, color: t.colors.text }}>${c.raised.toLocaleString()} raised</span>
-                <span>{pct}% of ${c.goal.toLocaleString()}</span>
+                <span>${c.raised.toLocaleString()} raised ({pct}%)</span>
+                <span>Goal: ${c.goal.toLocaleString()}</span>
               </ProgressLabel>
             </CampaignCard>
           )
         })}
       </Grid3>
 
-      {/* Recent donations */}
+      {/* Recent Donations */}
       <Card>
-        <CardHeader>
-          <CardTitle>Recent Donations</CardTitle>
-        </CardHeader>
-        <CardBody style={{ padding: 0 }}>
-          <TableWrap style={{ border: 'none', borderRadius: 0 }}>
+        <CardHeader><CardTitle>Recent Online Transactions ({donations.length})</CardTitle></CardHeader>
+        <CardBody style={{ paddingTop: 0 }}>
+          <TableWrap style={{ borderRadius: 0, border: 'none' }}>
             <Table>
-              <Thead><tr>
-                <Th>Donor</Th><Th>Amount</Th><Th>Category</Th><Th>Method</Th><Th>Date</Th>
-              </tr></Thead>
+              <Thead>
+                <tr>
+                  <Th>Donor</Th><Th>Category</Th><Th>Amount</Th>
+                  <Th>Payment Method</Th><Th>Date</Th>
+                </tr>
+              </Thead>
               <Tbody>
-                {mockDonations.map(d => (
+                {donations.map(d => (
                   <Tr key={d.id}>
-                    <Td>{d.isAnonymous ? <span style={{ color: t.colors.textMuted }}>Anonymous</span> : d.donor}</Td>
-                    <Td style={{ fontWeight: 600, color: t.colors.success }}>${d.amount}</Td>
+                    <Td style={{ fontWeight: 500 }}>{d.isAnonymous ? 'Anonymous' : d.donor}</Td>
                     <Td>{d.category}</Td>
+                    <Td style={{ fontWeight: 700, color: t.colors.success }}>${d.amount.toFixed(2)}</Td>
                     <Td>{d.method}</Td>
                     <Td>{new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</Td>
                   </Tr>
