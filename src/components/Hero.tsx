@@ -109,7 +109,7 @@ const Headline = styled.h1`
   color: #ffffff;
   line-height: 1.08;
   letter-spacing: -0.025em;
-  margin: 0 0 18px;
+  margin: 0 0 32px;
   text-align: left;
   text-shadow: 0 4px 28px rgba(0, 0, 0, 0.75), 0 1px 3px rgba(0, 0, 0, 0.9);
   animation: ${fadeUp} 0.65s ease both;
@@ -120,20 +120,6 @@ const Headline = styled.h1`
     color: #ffffff;
     font-weight: 700;
   }
-`
-
-const Subtitle = styled.p`
-  font-family: ${({ theme }) => theme.fonts.sans};
-  font-size: clamp(15px, 2vw, 19px);
-  font-weight: 300;
-  color: rgba(255, 255, 255, 0.92);
-  line-height: 1.6;
-  max-width: 620px;
-  margin: 0 0 32px;
-  text-align: left;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.8);
-  animation: ${fadeUp} 0.65s ease both;
-  animation-delay: 0.35s;
 `
 
 const CtaGroup = styled.div`
@@ -289,10 +275,6 @@ export default function Hero() {
             <br />
             <em>Emganwini Main</em>
           </Headline>
-
-          <Subtitle>
-            A Christ-centered church transforming lives through teaching, preaching, and community fellowship.
-          </Subtitle>
 
           <CtaGroup>
             <PrimaryBtn href="/contact">
