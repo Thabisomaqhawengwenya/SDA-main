@@ -103,14 +103,14 @@ const BadgeTag = styled.div`
 
 const Headline = styled.h1`
   font-family: ${({ theme }) => theme.fonts.serif};
-  font-size: clamp(38px, 6.2vw, 74px);
+  font-size: clamp(26px, 3.6vw, 46px);
   font-weight: 700;
   color: #ffffff;
-  line-height: 1.08;
-  letter-spacing: -0.025em;
-  margin: 0 0 32px;
+  line-height: 1.16;
+  letter-spacing: -0.02em;
+  margin: 0 0 28px;
   text-align: left;
-  text-shadow: 0 4px 28px rgba(0, 0, 0, 0.75), 0 1px 3px rgba(0, 0, 0, 0.9);
+  text-shadow: 0 3px 20px rgba(0, 0, 0, 0.75), 0 1px 3px rgba(0, 0, 0, 0.9);
   animation: ${fadeUp} 0.6s ease both;
   animation-delay: 0.15s;
 
