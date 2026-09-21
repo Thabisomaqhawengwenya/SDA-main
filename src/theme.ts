@@ -2,6 +2,7 @@ export const theme = {
   fonts: {
     serif: "'Noto Serif', Georgia, serif",
     sans: "'Noto Sans', Helvetica, Arial, sans-serif",
+    heading: "'Montserrat', 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif",
   },
   colors: {
     bg: '#fafaf8',

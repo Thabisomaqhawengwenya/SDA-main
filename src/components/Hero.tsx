@@ -59,12 +59,12 @@ const Content = styled.div`
 `
 
 const Headline = styled.h1`
-  font-family: ${({ theme }) => theme.fonts.sans};
+  font-family: 'Montserrat', 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: clamp(32px, 5vw, 62px);
   font-weight: 700;
   color: #ffffff;
   line-height: 1.15;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
   margin: 0;
   text-align: left;
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.75), 0 1px 3px rgba(0, 0, 0, 0.9);
