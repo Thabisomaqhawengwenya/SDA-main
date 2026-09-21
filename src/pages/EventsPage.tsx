@@ -938,7 +938,17 @@ export default function EventsPage() {
 
                   <ThumbCol>
                     {imgSrc
-                      ? <Thumbnail src={imgSrc} alt={event.title} loading="lazy" />
+                      ? (
+                        <Thumbnail
+                          src={imgSrc}
+                          alt={event.title}
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=400&q=80';
+                          }}
+                        />
+                      )
                       : <ThumbPlaceholder $color={event.categoryColor} />}
                   </ThumbCol>
 
@@ -982,7 +992,18 @@ export default function EventsPage() {
                       </DateCol>
                       <ThumbCol>
                         {imgSrc
-                          ? <Thumbnail src={imgSrc} alt={event.title} loading="lazy" style={{ filter: 'grayscale(40%)' }} />
+                          ? (
+                            <Thumbnail
+                              src={imgSrc}
+                              alt={event.title}
+                              loading="lazy"
+                              style={{ filter: 'grayscale(40%)' }}
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=400&q=80';
+                              }}
+                            />
+                          )
                           : <ThumbPlaceholder $color={event.categoryColor} />}
                       </ThumbCol>
                       <InfoCol>

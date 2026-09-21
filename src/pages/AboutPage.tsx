@@ -308,7 +308,14 @@ export default function AboutPage() {
             {leaders.map((leader) => (
               <LeaderProfileCard key={leader.id}>
                 {leader.photo ? (
-                  <LeaderPhoto src={leader.photo} alt={leader.name} />
+                  <LeaderPhoto
+                    src={leader.photo}
+                    alt={leader.name}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&q=80';
+                    }}
+                  />
                 ) : (
                   <LeaderAvatarPlaceholder>
                     {leader.name.charAt(0)}

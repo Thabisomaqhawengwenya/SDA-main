@@ -363,7 +363,15 @@ export default function UpcomingEvents() {
           {displayEvents.map((event, i) => (
             <Card key={event.id} style={{ animationDelay: `${i * 0.1}s` }}>
               <ImageWrap>
-                <CardImage src={event.image} alt={event.title} loading="lazy" />
+                <CardImage
+                  src={event.image || 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=800&q=80'}
+                  alt={event.title}
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=800&q=80';
+                  }}
+                />
                 <CategoryBadge $color={event.categoryColor}>
                   {event.category}
                 </CategoryBadge>
