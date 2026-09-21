@@ -12,7 +12,6 @@ const HeroSection = styled.section`
   min-height: 100dvh;
   display: flex;
   align-items: center;
-  justify-content: center;
   overflow: hidden;
   background-image: url('${heroBg}');
   background-size: cover;
@@ -21,31 +20,51 @@ const HeroSection = styled.section`
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     background-attachment: scroll;
-    background-position: center center;
+    background-position: 65% center;
   }
 `
 
 const DarkScrim = styled.div`
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(10, 15, 26, 0.60) 0%,
-    rgba(10, 15, 26, 0.78) 55%,
-    rgba(7, 10, 18, 0.90) 100%
+  background: linear-gradient(
+    95deg,
+    rgba(8, 12, 22, 0.90) 0%,
+    rgba(8, 12, 22, 0.76) 42%,
+    rgba(8, 12, 22, 0.45) 75%,
+    rgba(8, 12, 22, 0.30) 100%
   );
   pointer-events: none;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    background: linear-gradient(
+      180deg,
+      rgba(8, 12, 22, 0.75) 0%,
+      rgba(8, 12, 22, 0.85) 60%,
+      rgba(8, 12, 22, 0.95) 100%
+    );
+  }
+`
+
+const Container = styled.div`
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 120px 48px 80px;
+  position: relative;
+  z-index: 2;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    padding: 100px 24px 60px;
+  }
 `
 
 const Content = styled.div`
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  max-width: 820px;
-  padding: 80px 24px 60px;
+  text-align: left;
+  max-width: 780px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
 `
 
 const BadgeTag = styled.div`
@@ -86,6 +105,7 @@ const Headline = styled.h1`
   line-height: 1.08;
   letter-spacing: -0.025em;
   margin: 0 0 18px;
+  text-align: left;
   text-shadow: 0 4px 28px rgba(0, 0, 0, 0.75), 0 1px 3px rgba(0, 0, 0, 0.9);
   animation: ${fadeUp} 0.65s ease both;
   animation-delay: 0.2s;
@@ -94,8 +114,6 @@ const Headline = styled.h1`
     font-style: normal;
     color: #ffffff;
     font-weight: 700;
-    position: relative;
-    display: inline-block;
   }
 `
 
@@ -107,6 +125,7 @@ const Subtitle = styled.p`
   line-height: 1.6;
   max-width: 620px;
   margin: 0 0 32px;
+  text-align: left;
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.8);
   animation: ${fadeUp} 0.65s ease both;
   animation-delay: 0.35s;
@@ -114,11 +133,18 @@ const Subtitle = styled.p`
 
 const CtaGroup = styled.div`
   display: flex;
-  flex-direction: column;
   align-items: center;
+  flex-wrap: wrap;
   gap: 16px;
   animation: ${fadeUp} 0.65s ease both;
   animation-delay: 0.45s;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    width: 100%;
+  }
 `
 
 const PrimaryBtn = styled.a`
@@ -161,12 +187,19 @@ const PrimaryBtn = styled.a`
   &:active {
     transform: translateY(0);
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+  }
 `
 
 const SocialRow = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 `
 
 const SocialDivider = styled.span`
@@ -237,56 +270,58 @@ export default function Hero() {
   return (
     <HeroSection>
       <DarkScrim />
-      <Content>
-        <BadgeTag>
-          <span className="dot" />
-          Emganwini, Bulawayo
-        </BadgeTag>
+      <Container>
+        <Content>
+          <BadgeTag>
+            <span className="dot" />
+            Emganwini, Bulawayo
+          </BadgeTag>
 
-        <Headline>
-          Welcome to
-          <br />
-          <em>Emganwini Main</em>
-          <br />
-          SDA Church
-        </Headline>
+          <Headline>
+            Welcome to
+            <br />
+            <em>Emganwini Main</em>
+            <br />
+            SDA Church
+          </Headline>
 
-        <Subtitle>
-          A Christ-centered church transforming lives through teaching, preaching, and community fellowship.
-        </Subtitle>
+          <Subtitle>
+            A Christ-centered church transforming lives through teaching, preaching, and community fellowship.
+          </Subtitle>
 
-        <CtaGroup>
-          <PrimaryBtn href="/contact">
-            Join Us This Saturday
-            <svg viewBox="0 0 24 24">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </PrimaryBtn>
+          <CtaGroup>
+            <PrimaryBtn href="/contact">
+              Join Us This Saturday
+              <svg viewBox="0 0 24 24">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </PrimaryBtn>
 
-          <SocialRow>
-            <SocialDivider>Follow Us</SocialDivider>
-            <SocialBtn
-              href="https://www.tiktok.com/@emganwinisda"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Join us on TikTok"
-            >
-              <TikTokIcon />
-              TikTok
-            </SocialBtn>
-            <SocialBtn
-              href="https://www.youtube.com/@emganwinisda"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Join us on YouTube"
-            >
-              <YouTubeIcon />
-              YouTube
-            </SocialBtn>
-          </SocialRow>
-        </CtaGroup>
-      </Content>
+            <SocialRow>
+              <SocialDivider>Follow Us</SocialDivider>
+              <SocialBtn
+                href="https://www.tiktok.com/@emganwinisda"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Join us on TikTok"
+              >
+                <TikTokIcon />
+                TikTok
+              </SocialBtn>
+              <SocialBtn
+                href="https://www.youtube.com/@emganwinisda"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Join us on YouTube"
+              >
+                <YouTubeIcon />
+                YouTube
+              </SocialBtn>
+            </SocialRow>
+          </CtaGroup>
+        </Content>
+      </Container>
     </HeroSection>
   )
 }
