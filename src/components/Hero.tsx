@@ -280,9 +280,9 @@ export default function Hero() {
           <Headline>
             Welcome to
             <br />
-            <em>Emganwini Main</em>
+            Seventh-day Adventist
             <br />
-            SDA Church
+            <em>Emganwini Main</em>
           </Headline>
 
           <Subtitle>
