@@ -118,7 +118,7 @@ export const mockActivityLog: ActivityLog[] = [
 
 // ── Admin Users ───────────────────────────────────────────────────────────────
 export const mockAdminUsers: AdminUser[] = [
-  { id: 'u1', name: 'Admin', email: 'admin@emganwinisda.org', role: 'super_admin', lastActive: '2026-07-25T10:42:00', status: 'active' },
+  { id: 'u1', name: 'Thabiso Maqhawe Ngwenya', email: 'thabisomaqhawengwenya@gmail.com', role: 'super_admin', lastActive: '2026-09-21T10:45:00', status: 'active' },
   { id: 'u2', name: 'Pastor Ngwenya', email: 'pastor@emganwinisda.org', role: 'pastor', lastActive: '2026-07-25T09:31:00', status: 'active' },
   { id: 'u3', name: 'Media Team', email: 'media@emganwinisda.org', role: 'media', lastActive: '2026-07-24T14:00:00', status: 'active' },
   { id: 'u4', name: 'Content Editor', email: 'editor@emganwinisda.org', role: 'editor', lastActive: '2026-07-23T09:00:00', status: 'active' },

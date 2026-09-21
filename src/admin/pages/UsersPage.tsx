@@ -42,7 +42,7 @@ export default function UsersPage() {
   const [showModal, setModal]   = useState(false)
   const [editing, setEditing]   = useState<AdminUser | null>(null)
   const [deleteTarget, setDel]  = useState<AdminUser | null>(null)
-  const [form, setForm]         = useState<Partial<AdminUser>>({})
+  const [form, setForm]         = useState<Partial<AdminUser & { password?: string }>>({})
   const { adminProfile, user }  = useAuth()
 
   const userName = adminProfile?.name || user?.displayName || 'Admin'
@@ -192,13 +192,27 @@ export default function UsersPage() {
             </ModalHead>
             <ModalBody>
               <FormGroup><Label>Full Name *</Label>
-                <Input value={form.name || ''} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
+                <Input placeholder="e.g. Pastor John Doe" value={form.name || ''} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
               </FormGroup>
-              <FormGroup><Label>Email *</Label>
-                <Input type="email" value={form.email || ''} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
+              <FormGroup><Label>Email Address *</Label>
+                <Input type="email" placeholder="user@emganwinisda.org" value={form.email || ''} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
               </FormGroup>
+              {!editing && (
+                <FormGroup>
+                  <Label>Initial / Temporary Password</Label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. ChurchStaff2026!"
+                    value={form.password || ''}
+                    onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                  />
+                  <p style={{ fontFamily: t.fonts.sans, fontSize: 11, color: t.colors.textMuted, margin: '4px 0 0' }}>
+                    Share this initial password with the user so they can sign in to the Admin Portal.
+                  </p>
+                </FormGroup>
+              )}
               <FormGrid>
-                <FormGroup><Label>Role</Label>
+                <FormGroup><Label>Access Role</Label>
                   <Select value={form.role || 'editor'} onChange={e => setForm(f => ({ ...f, role: e.target.value as UserRole }))}>
                     {(Object.keys(ROLE_LABELS) as UserRole[]).map(r => (
                       <option key={r} value={r}>{ROLE_LABELS[r]}</option>
