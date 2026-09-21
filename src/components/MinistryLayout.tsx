@@ -247,9 +247,10 @@ interface Props {
   scripture: string
   scriptureRef: string
   programs: string[]
+  children?: React.ReactNode
 }
 
-export default function MinistryLayout({ title, imageUrl, scripture, scriptureRef, programs }: Props) {
+export default function MinistryLayout({ title, imageUrl, scripture, scriptureRef, programs, children }: Props) {
   const location = useLocation()
 
   return (
@@ -289,6 +290,8 @@ export default function MinistryLayout({ title, imageUrl, scripture, scriptureRe
                 </ProgramItem>
               ))}
             </ProgramList>
+
+            {children}
           </LeftCol>
 
           <Sidebar>

@@ -1,10 +1,16 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { adminTheme as t } from '../adminTheme'
 import {
   PageShell, PageHeader, PageTitleBlock, PageTitle, PageSubtitle,
   Card, CardHeader, CardTitle, CardBody, Grid4, Grid2,
 } from '../components/ui'
+import { subscribeSermons } from '../../services/sermonsService'
+import { subscribePrayerRequests } from '../../services/prayerService'
+import { subscribeContactMessages } from '../../services/contactService'
+import { subscribeMembers } from '../../services/membersService'
+import { subscribeEvents } from '../../services/eventsService'
+import type { Sermon, PrayerRequest, ContactMessage, Member, AdminEvent } from '../adminTypes'
 
 const FilterRow = styled.div`
   display:flex; gap:6px; flex-wrap:wrap;
@@ -58,15 +64,8 @@ type Filter = typeof FILTERS[number]
 const DATA: Record<Filter, { visitors: number[]; labels: string[] }> = {
   '7 Days':  { visitors:[120,145,98,167,210,188,234], labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] },
   '30 Days': { visitors:[880,1020,940,1150,1300,1100,980,1400,1250,1350], labels:['W1','','W2','','W3','','W4','','W5',''] },
-  '90 Days': { visitors:[3200,3800,4100,3600,4500,4200,3900,4800,4300,4600,5100,4700], labels:['Jan','','','','','','','','','','',''] },
+  '90 Days': { visitors:[3200,3800,4100,3600,4500,4200,3900,4800,4300,4600,5100,4700], labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] },
   '1 Year':  { visitors:[3200,3800,4100,3600,4500,4200,3900,4800,4300,4600,5100,4700], labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] },
-}
-
-const METRICS: Record<Filter, {visitors:number; pageViews:number; sermonViews:number; events:number; prayers:number; messages:number}> = {
-  '7 Days':  { visitors:1162, pageViews:4280, sermonViews:342, events:12,  prayers:5,  messages:8  },
-  '30 Days': { visitors:4820, pageViews:17600,sermonViews:1240,events:48,  prayers:18, messages:31 },
-  '90 Days': { visitors:13400,pageViews:51200,sermonViews:3800,events:130, prayers:52, messages:89 },
-  '1 Year':  { visitors:52000,pageViews:198000,sermonViews:14200,events:480,prayers:210,messages:340},
 }
 
 const TOP_PAGES = [
@@ -80,16 +79,38 @@ const TOP_PAGES = [
 
 export default function AnalyticsPage() {
   const [filter, setFilter] = useState<Filter>('30 Days')
+  const [sermons, setSermons] = useState<Sermon[]>([])
+  const [prayers, setPrayers] = useState<PrayerRequest[]>([])
+  const [messages, setMessages] = useState<ContactMessage[]>([])
+  const [members, setMembers] = useState<Member[]>([])
+  const [events, setEvents] = useState<AdminEvent[]>([])
+
+  useEffect(() => {
+    const unsubSermons = subscribeSermons(items => setSermons(items))
+    const unsubPrayers = subscribePrayerRequests(items => setPrayers(items))
+    const unsubMessages = subscribeContactMessages(items => setMessages(items))
+    const unsubMembers = subscribeMembers(items => setMembers(items))
+    const unsubEvents = subscribeEvents(items => setEvents(items))
+
+    return () => {
+      unsubSermons?.()
+      unsubPrayers?.()
+      unsubMessages?.()
+      unsubMembers?.()
+      unsubEvents?.()
+    }
+  }, [])
+
   const d = DATA[filter]
-  const m = METRICS[filter]
   const maxV = Math.max(...d.visitors)
+  const totalSermonViews = sermons.reduce((acc, s) => acc + (s.views || 0), 0)
 
   return (
     <PageShell>
       <PageHeader>
         <PageTitleBlock>
           <PageTitle>Analytics</PageTitle>
-          <PageSubtitle>Website performance and engagement overview</PageSubtitle>
+          <PageSubtitle>Website performance, engagement metrics, and community reach</PageSubtitle>
         </PageTitleBlock>
         <FilterRow>
           {FILTERS.map(f => (
@@ -101,10 +122,10 @@ export default function AnalyticsPage() {
       {/* Top metrics */}
       <Grid4 style={{ marginBottom: 28 }}>
         {[
-          { label: 'Website Visitors', value: m.visitors.toLocaleString(),  color: t.colors.primary, bg: t.colors.primaryLight, up: true,  trend: '+12%' },
-          { label: 'Page Views',       value: m.pageViews.toLocaleString(), color: t.colors.info,    bg: t.colors.infoLight,    up: true,  trend: '+8%'  },
-          { label: 'Sermon Views',     value: m.sermonViews.toLocaleString(),color:t.colors.purple,  bg: t.colors.purpleLight,  up: true,  trend: '+18%' },
-          { label: 'Event Reg.',       value: m.events.toLocaleString(),     color: t.colors.success,bg: t.colors.successLight, up: false, trend: '-3%'  },
+          { label: 'Active Members',   value: members.length.toString(), color: t.colors.accent, bg: t.colors.accentLight, up: true, trend: 'Registered' },
+          { label: 'Total Sermons',    value: sermons.length.toString(), color: t.colors.purple, bg: t.colors.purpleLight, up: true, trend: `${totalSermonViews} plays` },
+          { label: 'Published Events', value: events.filter(e => e.status === 'published').length.toString(), color: t.colors.primary, bg: t.colors.primaryLight, up: true, trend: 'Scheduled' },
+          { label: 'Prayer Petitions', value: prayers.length.toString(), color: t.colors.success, bg: t.colors.successLight, up: true, trend: `${prayers.filter(p => p.status === 'answered').length} Answered` },
         ].map(stat => (
           <div key={stat.label} style={{ background: stat.bg, borderRadius: t.radius.lg, padding: '20px', border: `1px solid ${stat.color}20` }}>
             <p style={{ fontFamily: t.fonts.sans, fontSize: 28, fontWeight: 700, color: stat.color, margin: '0 0 4px', letterSpacing: '-0.03em' }}>{stat.value}</p>
@@ -117,7 +138,7 @@ export default function AnalyticsPage() {
       <Grid2 style={{ marginBottom: 28 }}>
         {/* Visitors chart */}
         <Card>
-          <CardHeader><CardTitle>Website Visitors</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Website Visitors Trend</CardTitle></CardHeader>
           <CardBody>
             <BarChart>
               {d.visitors.map((v, i) => (
@@ -132,7 +153,7 @@ export default function AnalyticsPage() {
 
         {/* Top pages */}
         <Card>
-          <CardHeader><CardTitle>Most Visited Pages</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Most Visited Sections</CardTitle></CardHeader>
           <CardBody style={{ paddingTop: 12 }}>
             {TOP_PAGES.map(p => (
               <PageRow key={p.name}>
@@ -147,13 +168,13 @@ export default function AnalyticsPage() {
 
       {/* Detailed metrics */}
       <Card>
-        <CardHeader><CardTitle>Engagement Metrics</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Live Community Engagement</CardTitle></CardHeader>
         <CardBody style={{ paddingTop: 12 }}>
           {[
-            { label: 'Contact Form Submissions', value: m.messages, trend: '+5%',  up: true  },
-            { label: 'Prayer Requests Submitted', value: m.prayers, trend: '+12%', up: true  },
-            { label: 'Sermon Plays',              value: m.sermonViews, trend: '+18%', up: true },
-            { label: 'Livestream Views',           value: Math.round(m.visitors * 0.08), trend: '+22%', up: true },
+            { label: 'Contact Messages Received', value: messages.length, trend: `${messages.filter(m => m.status === 'new').length} Unread`, up: true },
+            { label: 'Prayer Requests In Intercession', value: prayers.filter(p => p.status === 'praying').length, trend: 'Active Prayer Team', up: true },
+            { label: 'Total Sermon Views Across Catalog', value: totalSermonViews, trend: 'Media Ministry', up: true },
+            { label: 'Active Ministries & Departments', value: 7, trend: 'All Active', up: true },
           ].map(row => (
             <MetricRow key={row.label}>
               <MetricLabel>{row.label}</MetricLabel>

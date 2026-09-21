@@ -107,9 +107,38 @@ export async function seedFirestoreDatabase(force = false): Promise<{ success: b
       await setDoc(doc(db, 'activity_log', id), data);
     }
 
+    // 14. Church Settings
+    await setDoc(doc(db, 'settings', 'church_info'), {
+      churchName: 'Emganwini Main Seventh-day Adventist Church',
+      tagline: 'Connecting our community to Christ — through teaching, preaching, and healing.',
+      email: 'Connect@Emganwinisda.org',
+      phone: '+263 77 123 4567',
+      address: 'Stand 1420, Emganwini, Bulawayo, Zimbabwe',
+      postalAddress: 'P.O. Box 2445, Bulawayo, Zimbabwe',
+      serviceTimes: {
+        sabbathSchool: 'Every Saturday, 09:00 am',
+        divineService: 'Every Saturday, 11:30 am',
+        midweekPrayer: 'Every Wednesday, 07:00 pm',
+      },
+      socialLinks: {
+        facebook: 'https://facebook.com',
+        youtube: 'https://youtube.com',
+        whatsapp: 'https://wa.me/263771234567',
+      },
+      givingDetails: {
+        bankName: 'Standard Chartered / CBZ Bank',
+        accountName: 'Emganwini Main SDA Church',
+        accountNumber: '0100234567890',
+        branchCode: '6102',
+        ecocashMerchant: '*151*2*2*123456#',
+        innbucksNumber: '+263 77 123 4567',
+      },
+      maintenanceMode: false,
+    }, { merge: true });
+
     return {
       success: true,
-      message: 'Successfully seeded Firestore with initial church data across all 13 collections!',
+      message: 'Successfully seeded Firestore with initial church data across all 14 collections & settings!',
     };
   } catch (error: unknown) {
     console.error('Error seeding Firestore:', error);

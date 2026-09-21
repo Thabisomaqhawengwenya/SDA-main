@@ -14,6 +14,7 @@ interface ChurchEvent {
   categoryColor: string
   description: string
   location?: string
+  image?: string
   isRecurring?: boolean
 }
 
@@ -716,18 +717,25 @@ export default function EventsPage() {
     const unsub = subscribeEvents((items) => {
       const published = items.filter(e => e.status === 'published')
       if (published.length > 0) {
-        const mapped: ChurchEvent[] = published.map((e, idx) => ({
-          id: idx + 1,
-          title: e.title,
-          date: new Date(e.date + (e.time ? `T${e.time.replace(/[^0-9:]/g, '') || '00:00'}` : '')),
-          endDate: e.endTime ? new Date(e.date) : undefined,
-          time: e.time,
-          category: e.category,
-          categoryColor: e.categoryColor || '#3b82f6',
-          description: e.description,
-          location: e.location,
-          isRecurring: e.recurring,
-        }))
+        const mapped: ChurchEvent[] = published.map((e, idx) => {
+          let parsedDate = new Date(e.date)
+          if (isNaN(parsedDate.getTime())) {
+            parsedDate = new Date()
+          }
+          return {
+            id: idx + 1,
+            title: e.title,
+            date: parsedDate,
+            endDate: e.endTime ? new Date(e.date) : undefined,
+            time: e.time,
+            category: e.category,
+            categoryColor: e.categoryColor || '#3b82f6',
+            description: e.description,
+            location: e.location,
+            image: e.image,
+            isRecurring: e.recurring,
+          }
+        })
         setLiveEvents(mapped)
       }
     })
@@ -916,7 +924,7 @@ export default function EventsPage() {
               </div>
             )}
             {upcomingEvents.map((event) => {
-              const imgSrc = EVENT_IMAGES[event.id]
+              const imgSrc = event.image || EVENT_IMAGES[event.id]
               const meta = [event.location, event.time].filter(Boolean).join(' · ')
               const eventDate = new Date(event.date.getFullYear(), event.date.getMonth(), event.date.getDate())
               const isToday = eventDate.getTime() === today.getTime()
@@ -963,7 +971,7 @@ export default function EventsPage() {
                 </PastHeader>
 
                 {showPast && pastEvents.map((event) => {
-                  const imgSrc = EVENT_IMAGES[event.id]
+                  const imgSrc = event.image || EVENT_IMAGES[event.id]
                   const meta = [event.location, event.time].filter(Boolean).join(' · ')
 
                   return (

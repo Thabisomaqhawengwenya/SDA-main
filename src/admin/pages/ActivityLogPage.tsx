@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { adminTheme as t } from '../adminTheme'
 import {
@@ -5,7 +6,8 @@ import {
   Card, Avatar, Toolbar, ToolbarLeft, ToolbarRight, SearchWrap, SearchInput, Select,
 } from '../components/ui'
 import { mockActivityLog } from '../mockData'
-import { useState } from 'react'
+import type { ActivityLog } from '../adminTypes'
+import { subscribeActivityLogs } from '../../services/activityService'
 
 const LogList = styled.div`display:flex; flex-direction:column;`
 const LogItem = styled.div`
@@ -33,6 +35,8 @@ const LogAction = styled.span<{$action:string}>`
       case 'replied':   return `background:${t.colors.accentLight};color:${t.colors.accent};`
       case 'scheduled': return `background:${t.colors.warningLight};color:${t.colors.warning};`
       case 'drafted':   return `background:${t.colors.surfaceAlt};color:${t.colors.textMuted};`
+      case 'registered':return `background:${t.colors.infoLight};color:${t.colors.info};`
+      case 'deleted':   return `background:${t.colors.dangerLight};color:${t.colors.danger};`
       default: return `background:${t.colors.surfaceAlt};color:${t.colors.textMuted};`
     }
   }}
@@ -40,6 +44,7 @@ const LogAction = styled.span<{$action:string}>`
 
 function formatTimestamp(ts: string) {
   const d = new Date(ts)
+  if (isNaN(d.getTime())) return 'Recently'
   const now = new Date()
   const diffMs = now.getTime() - d.getTime()
   const diffH = Math.floor(diffMs / 3600000)
@@ -52,12 +57,20 @@ function formatTimestamp(ts: string) {
 }
 
 export default function ActivityLogPage() {
+  const [logs, setLogs]         = useState<ActivityLog[]>(mockActivityLog)
   const [search, setSearch]     = useState('')
   const [filterUser, setFilter] = useState('all')
 
-  const users = ['all', ...Array.from(new Set(mockActivityLog.map(l => l.user)))]
+  useEffect(() => {
+    const unsub = subscribeActivityLogs((items) => {
+      if (items.length > 0) setLogs(items)
+    }, 100)
+    return () => unsub?.()
+  }, [])
 
-  const filtered = mockActivityLog.filter(l => {
+  const users = ['all', ...Array.from(new Set(logs.map(l => l.user)))]
+
+  const filtered = logs.filter(l => {
     const matchSearch = l.resource.toLowerCase().includes(search.toLowerCase()) ||
       l.action.toLowerCase().includes(search.toLowerCase())
     const matchUser = filterUser === 'all' || l.user === filterUser
@@ -69,7 +82,7 @@ export default function ActivityLogPage() {
       <PageHeader>
         <PageTitleBlock>
           <PageTitle>Activity Log</PageTitle>
-          <PageSubtitle>A record of all administrative actions</PageSubtitle>
+          <PageSubtitle>A real-time record of all administrative actions and updates</PageSubtitle>
         </PageTitleBlock>
       </PageHeader>
 

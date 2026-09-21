@@ -1,5 +1,8 @@
+import { useState, useEffect } from 'react'
 import styled, { keyframes } from 'styled-components'
 import { Link } from 'react-router-dom'
+import { subscribeServices } from '../services/servicesService'
+import type { ChurchService } from '../admin/adminTypes'
 
 const shimmer = keyframes`
   0%   { background-position: -200% center; }
@@ -234,12 +237,23 @@ const Arrow = styled.span`
   opacity: 0.7;
 `
 
-const services = [
-  { name: 'Sabbath School', day: 'Every Saturday', time: '09:00 am' },
-  { name: 'Worship Service', day: 'Every Saturday', time: '11:30 am' },
+const defaultServices = [
+  { id: '1', name: 'Sabbath School', day: 'Every Saturday', time: '09:00 am', description: '', recurring: true },
+  { id: '2', name: 'Worship Service', day: 'Every Saturday', time: '11:30 am', description: '', recurring: true },
 ]
 
 export default function JoinUs() {
+  const [liveServices, setLiveServices] = useState<ChurchService[]>(defaultServices)
+
+  useEffect(() => {
+    const unsub = subscribeServices((items) => {
+      if (items.length > 0) {
+        setLiveServices(items)
+      }
+    })
+    return () => unsub?.()
+  }, [])
+
   return (
     <Section id="join-us">
       <BgShape />
@@ -262,8 +276,8 @@ export default function JoinUs() {
         </Left>
 
         <Right>
-          {services.map((s) => (
-            <ServiceCard key={s.name}>
+          {liveServices.map((s) => (
+            <ServiceCard key={s.id || s.name}>
               <ServiceName>
                 <p>{s.name}</p>
                 <p>{s.day}</p>

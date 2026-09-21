@@ -484,6 +484,10 @@ export default function Navbar() {
                 About Us
               </NavItem>
 
+              <NavItem to="/sermons" $active={isActive('/sermons')}>
+                Sermons
+              </NavItem>
+
               <NavItem to="/calendar" $active={isActive('/calendar')}>
                 Calendar
               </NavItem>
@@ -535,10 +539,11 @@ export default function Navbar() {
         <MobileMenu $open={menuOpen}>
           <MobileNavItem to="/" onClick={() => setMenuOpen(false)}>Home</MobileNavItem>
           <MobileNavItem to="/about" onClick={() => setMenuOpen(false)}>About Us</MobileNavItem>
+          <MobileNavItem to="/sermons" onClick={() => setMenuOpen(false)}>Sermons</MobileNavItem>
           <MobileNavItem to="/calendar" onClick={() => setMenuOpen(false)}>Calendar</MobileNavItem>
           <MobileNavItem to="/ministries/youth" onClick={() => setMenuOpen(false)}>Ministries</MobileNavItem>
           <MobileNavItem to="/contact" onClick={() => setMenuOpen(false)}>Contact Us</MobileNavItem>
-          <MobileGiving href="#giving" onClick={() => setMenuOpen(false)}>
+          <MobileGiving href="/giving" onClick={() => setMenuOpen(false)}>
             <svg viewBox="0 0 16 16" style={{ width: 13, height: 13, fill: '#e05555' }}>
               <path d="M8 14s-6-3.5-6-7.5A4.5 4.5 0 0 1 8 3.07 4.5 4.5 0 0 1 14 6.5C14 10.5 8 14 8 14z" />
             </svg>

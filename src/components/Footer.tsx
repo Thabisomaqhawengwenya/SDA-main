@@ -152,8 +152,10 @@ export default function Footer() {
             <ColLinks>
               <ColLink><Link to="/">Home</Link></ColLink>
               <ColLink><Link to="/about">About Us</Link></ColLink>
-              <ColLink><a href="#join-us">Service Times</a></ColLink>
-              <ColLink><a href="#about-section">Our Beliefs</a></ColLink>
+              <ColLink><Link to="/sermons">Sermons &amp; Media</Link></ColLink>
+              <ColLink><Link to="/calendar">Church Calendar</Link></ColLink>
+              <ColLink><Link to="/giving">Online Giving</Link></ColLink>
+              <ColLink><Link to="/contact">Contact Us</Link></ColLink>
             </ColLinks>
           </Col>
 

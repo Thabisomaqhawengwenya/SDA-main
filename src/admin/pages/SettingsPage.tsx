@@ -12,9 +12,10 @@ import {
 import { mockAdminUsers, mockActivityLog } from '../mockData'
 import type { AdminUser, UserRole, ActivityLog } from '../adminTypes'
 import { seedFirestoreDatabase } from '../../services/seedService'
-import { subscribeActivityLogs } from '../../services/activityService'
-import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore'
-import { db } from '../../firebase/config'
+import { subscribeActivityLogs, logActivity } from '../../services/activityService'
+import { subscribeUsers, createUser, updateUserProfile, deleteUser as deleteUserApi } from '../../services/usersService'
+import { subscribeChurchSettings, saveChurchSettings, defaultChurchSettings } from '../../services/settingsService'
+import type { ChurchSettings } from '../../services/settingsService'
 import { useAuth } from '../../context/AuthContext'
 
 // ── Tab bar ───────────────────────────────────────────────────────────────────
@@ -45,12 +46,6 @@ const TabBtn = styled.button<{ $active: boolean }>`
 // ── General tab ───────────────────────────────────────────────────────────────
 
 const Section = styled.div`margin-bottom: 20px;`
-
-const Toggle = styled.label`
-  display: flex; align-items: center; gap: 12px; cursor: pointer;
-  font-family: ${t.fonts.sans}; font-size: 14px; color: ${t.colors.text};
-  input { accent-color: ${t.colors.primary}; width: 16px; height: 16px; }
-`
 
 const SaveBar = styled.div`
   position: fixed; bottom: 24px; right: 32px; z-index: 50;
@@ -141,22 +136,7 @@ export default function SettingsPage() {
   const [seedMessage, setSeedMessage] = useState('')
 
   // General form
-  const [form, setForm] = useState({
-    churchName:    'Emganwini Main SDA Church',
-    tagline:       'Connecting our community to Christ',
-    email:         'Connect@Emganwinisda.org',
-    phone:         '+263 XXX XXX XXX',
-    address:       'Emganwini, Bulawayo, Zimbabwe',
-    youtubeUrl:    'https://youtube.com/@emganwinisda',
-    facebookUrl:   'https://facebook.com/emganwinisda',
-    tiktokUrl:     'https://tiktok.com/@emganwinisda',
-    sabbathSchool: '09:00',
-    worship:       '11:30',
-    timezone:      'Africa/Harare',
-    emailNotifs:   true,
-    prayerNotifs:  true,
-    messageNotifs: true,
-  })
+  const [form, setForm] = useState<ChurchSettings>(defaultChurchSettings)
 
   // Users state
   const [users, setUsers]             = useState<AdminUser[]>(mockAdminUsers)
@@ -168,25 +148,29 @@ export default function SettingsPage() {
   // Activity Log
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>(mockActivityLog)
 
-  // Load live activity logs and users from Firestore
+  // Load live church settings, users, and activity logs from Firestore
   useEffect(() => {
+    const unsubSettings = subscribeChurchSettings((settings) => {
+      setForm(settings)
+    })
+    const unsubUsers = subscribeUsers((items) => {
+      if (items.length > 0) setUsers(items)
+    })
     const unsubActivity = subscribeActivityLogs((items) => {
       if (items.length > 0) setActivityLogs(items)
     })
 
-    // Fetch users collection
-    getDocs(collection(db, 'users')).then((snap) => {
-      if (!snap.empty) {
-        setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() } as AdminUser)))
-      }
-    }).catch(console.warn)
-
-    return () => unsubActivity?.()
+    return () => {
+      unsubSettings?.()
+      unsubUsers?.()
+      unsubActivity?.()
+    }
   }, [])
 
   async function handleSave() {
     try {
-      await setDoc(doc(db, 'settings', 'general'), form, { merge: true })
+      await saveChurchSettings(form)
+      logActivity(user?.displayName || user?.email || 'Admin', 'Updated church general settings', 'Settings')
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)
     } catch (err) {
@@ -196,14 +180,15 @@ export default function SettingsPage() {
     }
   }
 
-  const set = (k: string, v: string | boolean) => setForm(f => ({ ...f, [k]: v }))
-
   async function handleSeed(force = false) {
     setSeeding(true)
     setSeedMessage('')
     try {
       const res = await seedFirestoreDatabase(force)
       setSeedMessage(res.message)
+      if (res.success) {
+        logActivity(user?.displayName || user?.email || 'Admin', 'Seeded initial database records', 'Database')
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Seeding failed'
       setSeedMessage(`Error: ${msg}`)
@@ -228,19 +213,15 @@ export default function SettingsPage() {
     }
 
     try {
-      await setDoc(doc(db, 'users', id), userData, { merge: true })
       if (editingUser) {
-        setUsers(prev => prev.map(u => u.id === editingUser.id ? userData : u))
+        await updateUserProfile(id, userData)
+        logActivity(user?.displayName || user?.email || 'Admin', `Updated admin user ${userData.name}`, 'Users')
       } else {
-        setUsers(prev => [...prev, userData])
+        await createUser(userData)
+        logActivity(user?.displayName || user?.email || 'Admin', `Created new admin user ${userData.name}`, 'Users')
       }
     } catch (err) {
       console.warn('Error saving user to Firestore:', err)
-      if (editingUser) {
-        setUsers(prev => prev.map(u => u.id === editingUser.id ? userData : u))
-      } else {
-        setUsers(prev => [...prev, userData])
-      }
     }
     setUserModal(false)
   }
@@ -248,10 +229,10 @@ export default function SettingsPage() {
   async function handleDeleteUser() {
     if (!deleteUser) return
     try {
-      await deleteDoc(doc(db, 'users', deleteUser.id))
-      setUsers(prev => prev.filter(u => u.id !== deleteUser.id))
+      await deleteUserApi(deleteUser.id)
+      logActivity(user?.displayName || user?.email || 'Admin', `Deleted admin user ${deleteUser.name}`, 'Users')
     } catch (err) {
-      setUsers(prev => prev.filter(u => u.id !== deleteUser.id))
+      console.warn('Error deleting user:', err)
     }
     setDeleteUser(null)
   }
@@ -292,7 +273,7 @@ export default function SettingsPage() {
               </p>
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 14 }}>
                 <Badge $variant="success">Firebase Auth Active (Email + Google)</Badge>
-                <Badge $variant="info">Cloud Firestore Ready</Badge>
+                <Badge $variant="info">Cloud Firestore Ready (14 Collections)</Badge>
                 <Badge $variant="purple">Cloud Storage Connected</Badge>
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -326,21 +307,24 @@ export default function SettingsPage() {
             <CardBody>
               <Section>
                 <FormGroup><Label>Church Name</Label>
-                  <Input value={form.churchName} onChange={e => set('churchName', e.target.value)} />
+                  <Input value={form.churchName || ''} onChange={e => setForm(f => ({ ...f, churchName: e.target.value }))} />
                 </FormGroup>
                 <FormGroup><Label>Tagline</Label>
-                  <Input value={form.tagline} onChange={e => set('tagline', e.target.value)} />
+                  <Input value={form.tagline || ''} onChange={e => setForm(f => ({ ...f, tagline: e.target.value }))} />
                 </FormGroup>
                 <FormGrid>
                   <FormGroup><Label>Contact Email</Label>
-                    <Input type="email" value={form.email} onChange={e => set('email', e.target.value)} />
+                    <Input type="email" value={form.email || ''} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
                   </FormGroup>
                   <FormGroup><Label>Phone</Label>
-                    <Input value={form.phone} onChange={e => set('phone', e.target.value)} />
+                    <Input value={form.phone || ''} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
                   </FormGroup>
                 </FormGrid>
-                <FormGroup><Label>Address</Label>
-                  <Input value={form.address} onChange={e => set('address', e.target.value)} />
+                <FormGroup><Label>Physical Address</Label>
+                  <Input value={form.address || ''} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
+                </FormGroup>
+                <FormGroup><Label>Postal Address</Label>
+                  <Input value={form.postalAddress || ''} onChange={e => setForm(f => ({ ...f, postalAddress: e.target.value }))} />
                 </FormGroup>
               </Section>
             </CardBody>
@@ -350,19 +334,15 @@ export default function SettingsPage() {
             <CardHeader><CardTitle>Service Times</CardTitle></CardHeader>
             <CardBody>
               <FormGrid>
-                <FormGroup><Label>Sabbath School Time</Label>
-                  <Input type="time" value={form.sabbathSchool} onChange={e => set('sabbathSchool', e.target.value)} />
+                <FormGroup><Label>Sabbath School</Label>
+                  <Input value={form.serviceTimes?.sabbathSchool || ''} onChange={e => setForm(f => ({ ...f, serviceTimes: { ...f.serviceTimes, sabbathSchool: e.target.value } }))} placeholder="Every Saturday, 09:00 am" />
                 </FormGroup>
-                <FormGroup><Label>Worship Service Time</Label>
-                  <Input type="time" value={form.worship} onChange={e => set('worship', e.target.value)} />
+                <FormGroup><Label>Divine Service</Label>
+                  <Input value={form.serviceTimes?.divineService || ''} onChange={e => setForm(f => ({ ...f, serviceTimes: { ...f.serviceTimes, divineService: e.target.value } }))} placeholder="Every Saturday, 11:30 am" />
                 </FormGroup>
               </FormGrid>
-              <FormGroup><Label>Timezone</Label>
-                <Select value={form.timezone} onChange={e => set('timezone', e.target.value)}>
-                  <option value="Africa/Harare">Africa/Harare (CAT)</option>
-                  <option value="Africa/Johannesburg">Africa/Johannesburg (SAST)</option>
-                  <option value="UTC">UTC</option>
-                </Select>
+              <FormGroup><Label>Midweek Prayer</Label>
+                <Input value={form.serviceTimes?.midweekPrayer || ''} onChange={e => setForm(f => ({ ...f, serviceTimes: { ...f.serviceTimes, midweekPrayer: e.target.value } }))} placeholder="Every Wednesday, 07:00 pm" />
               </FormGroup>
             </CardBody>
           </Card>
@@ -370,26 +350,45 @@ export default function SettingsPage() {
           <Card style={{ marginBottom: 20 }}>
             <CardHeader><CardTitle>Social Media Links</CardTitle></CardHeader>
             <CardBody>
-              <FormGroup><Label>YouTube</Label>
-                <Input placeholder="https://youtube.com/@handle" value={form.youtubeUrl} onChange={e => set('youtubeUrl', e.target.value)} />
+              <FormGroup><Label>YouTube Channel</Label>
+                <Input placeholder="https://youtube.com/@emganwinisda" value={form.socialLinks?.youtube || ''} onChange={e => setForm(f => ({ ...f, socialLinks: { ...f.socialLinks, youtube: e.target.value } }))} />
               </FormGroup>
-              <FormGroup><Label>Facebook</Label>
-                <Input placeholder="https://facebook.com/page" value={form.facebookUrl} onChange={e => set('facebookUrl', e.target.value)} />
+              <FormGroup><Label>Facebook Page</Label>
+                <Input placeholder="https://facebook.com/emganwinisda" value={form.socialLinks?.facebook || ''} onChange={e => setForm(f => ({ ...f, socialLinks: { ...f.socialLinks, facebook: e.target.value } }))} />
               </FormGroup>
-              <FormGroup><Label>TikTok</Label>
-                <Input placeholder="https://tiktok.com/@handle" value={form.tiktokUrl} onChange={e => set('tiktokUrl', e.target.value)} />
+              <FormGroup><Label>TikTok / WhatsApp</Label>
+                <Input placeholder="https://wa.me/263771234567" value={form.socialLinks?.whatsapp || ''} onChange={e => setForm(f => ({ ...f, socialLinks: { ...f.socialLinks, whatsapp: e.target.value } }))} />
               </FormGroup>
             </CardBody>
           </Card>
 
-          <Card>
-            <CardHeader><CardTitle>Notifications</CardTitle></CardHeader>
+          <Card style={{ marginBottom: 20 }}>
+            <CardHeader><CardTitle>Banking &amp; Giving Details</CardTitle></CardHeader>
             <CardBody>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <Toggle><input type="checkbox" checked={form.emailNotifs} onChange={e => set('emailNotifs', e.target.checked)} /> Email me when a new contact message is received</Toggle>
-                <Toggle><input type="checkbox" checked={form.prayerNotifs} onChange={e => set('prayerNotifs', e.target.checked)} /> Email me when a new prayer request is submitted</Toggle>
-                <Toggle><input type="checkbox" checked={form.messageNotifs} onChange={e => set('messageNotifs', e.target.checked)} /> Show in-dashboard notifications for new activity</Toggle>
-              </div>
+              <FormGrid>
+                <FormGroup><Label>Bank Name</Label>
+                  <Input value={form.givingDetails?.bankName || ''} onChange={e => setForm(f => ({ ...f, givingDetails: { ...f.givingDetails, bankName: e.target.value } }))} />
+                </FormGroup>
+                <FormGroup><Label>Account Name</Label>
+                  <Input value={form.givingDetails?.accountName || ''} onChange={e => setForm(f => ({ ...f, givingDetails: { ...f.givingDetails, accountName: e.target.value } }))} />
+                </FormGroup>
+              </FormGrid>
+              <FormGrid>
+                <FormGroup><Label>Account Number</Label>
+                  <Input value={form.givingDetails?.accountNumber || ''} onChange={e => setForm(f => ({ ...f, givingDetails: { ...f.givingDetails, accountNumber: e.target.value } }))} />
+                </FormGroup>
+                <FormGroup><Label>Branch Code</Label>
+                  <Input value={form.givingDetails?.branchCode || ''} onChange={e => setForm(f => ({ ...f, givingDetails: { ...f.givingDetails, branchCode: e.target.value } }))} />
+                </FormGroup>
+              </FormGrid>
+              <FormGrid>
+                <FormGroup><Label>EcoCash USSD / Merchant Code</Label>
+                  <Input value={form.givingDetails?.ecocashMerchant || ''} onChange={e => setForm(f => ({ ...f, givingDetails: { ...f.givingDetails, ecocashMerchant: e.target.value } }))} />
+                </FormGroup>
+                <FormGroup><Label>InnBucks Number</Label>
+                  <Input value={form.givingDetails?.innbucksNumber || ''} onChange={e => setForm(f => ({ ...f, givingDetails: { ...f.givingDetails, innbucksNumber: e.target.value } }))} />
+                </FormGroup>
+              </FormGrid>
             </CardBody>
           </Card>
         </>

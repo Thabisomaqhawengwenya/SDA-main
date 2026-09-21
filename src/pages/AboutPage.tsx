@@ -1,6 +1,10 @@
+import { useState, useEffect } from 'react'
 import styled, { keyframes } from 'styled-components'
 import AboutCanvas from '../components/AboutCanvas'
 import { Icon } from '@iconify/react'
+import { subscribeLeaders } from '../services/leadersService'
+import type { Leader } from '../admin/adminTypes'
+import { mockLeaders } from '../admin/mockData'
 
 const fadeUp = keyframes`
   from { opacity: 0; transform: translateY(24px); }
@@ -210,6 +214,17 @@ const beliefs = [
 ]
 
 export default function AboutPage() {
+  const [leaders, setLeaders] = useState<Leader[]>(mockLeaders)
+
+  useEffect(() => {
+    const unsub = subscribeLeaders((items) => {
+      if (items.length > 0) {
+        setLeaders(items)
+      }
+    })
+    return () => unsub?.()
+  }, [])
+
   return (
     <PageWrapper>
       {/* Hero */}
@@ -279,6 +294,131 @@ export default function AboutPage() {
           </BeliefsGrid>
         </Container>
       </ContentSection>
+
+      {/* Leadership Section */}
+      <ContentSection>
+        <Container>
+          <SectionLabel>Servant Leadership</SectionLabel>
+          <SectionTitle>Our Church Leadership</SectionTitle>
+          <Body>
+            Meet the pastoral staff, elders, and ministry leaders dedicated to guiding and serving our church family and community.
+          </Body>
+
+          <LeadershipGrid>
+            {leaders.map((leader) => (
+              <LeaderProfileCard key={leader.id}>
+                {leader.photo ? (
+                  <LeaderPhoto src={leader.photo} alt={leader.name} />
+                ) : (
+                  <LeaderAvatarPlaceholder>
+                    {leader.name.charAt(0)}
+                  </LeaderAvatarPlaceholder>
+                )}
+                <LeaderNameText>{leader.name}</LeaderNameText>
+                <LeaderRoleText>{leader.position}</LeaderRoleText>
+                {leader.bio && <LeaderBioText>{leader.bio}</LeaderBioText>}
+                {leader.email && (
+                  <LeaderContactLink href={`mailto:${leader.email}`}>
+                    ✉ {leader.email}
+                  </LeaderContactLink>
+                )}
+              </LeaderProfileCard>
+            ))}
+          </LeadershipGrid>
+        </Container>
+      </ContentSection>
     </PageWrapper>
   )
 }
+
+const LeadershipGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 40px;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
+  }
+`
+
+const LeaderProfileCard = styled.div`
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.lg};
+  padding: 28px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: ${({ theme }) => theme.shadows.md};
+  }
+`
+
+const LeaderPhoto = styled.img`
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 16px;
+  border: 3px solid #1DA1F2;
+`
+
+const LeaderAvatarPlaceholder = styled.div`
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1DA1F2, #0d8bd9);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: ${({ theme }) => theme.fonts.serif};
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 16px;
+`
+
+const LeaderNameText = styled.h4`
+  font-family: ${({ theme }) => theme.fonts.serif};
+  font-size: 18px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+  margin: 0 0 4px;
+`
+
+const LeaderRoleText = styled.p`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1DA1F2;
+  margin: 0 0 12px;
+`
+
+const LeaderBioText = styled.p`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  line-height: 1.6;
+  margin: 0 0 16px;
+  flex: 1;
+`
+
+const LeaderContactLink = styled.a`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 12px;
+  color: #1DA1F2;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+`

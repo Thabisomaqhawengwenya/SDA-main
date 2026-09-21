@@ -1,4 +1,7 @@
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
+import { subscribeChurchSettings, defaultChurchSettings } from '../services/settingsService'
+import type { ChurchSettings } from '../services/settingsService'
 
 const Section = styled.section`
   padding: 32px 32px 32px;
@@ -193,6 +196,15 @@ const MapWrapper = styled.div`
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function FindUs() {
+  const [settings, setSettings] = useState<ChurchSettings>(defaultChurchSettings)
+
+  useEffect(() => {
+    const unsub = subscribeChurchSettings((data) => {
+      setSettings(data)
+    })
+    return () => unsub?.()
+  }, [])
+
   return (
     <Section>
       <Card>
@@ -213,8 +225,7 @@ export default function FindUs() {
               <BlockTitle>We're in Emganwini, Bulawayo</BlockTitle>
             </BlockHeader>
             <BlockText>
-              Emganwini<br />
-              Bulawayo, Zimbabwe
+              {settings.address || 'Emganwini, Bulawayo, Zimbabwe'}
             </BlockText>
             <DirectionsLink
               href="https://maps.app.goo.gl/ZtEBkLJjLnEhuKHs5"
@@ -237,7 +248,7 @@ export default function FindUs() {
               </svg>
               <BlockTitle>Call Us</BlockTitle>
             </BlockHeader>
-            <BlockText>+263 XXX XXX XXX</BlockText>
+            <BlockText>{settings.phone || '+263 77 123 4567'}</BlockText>
           </InfoBlock>
 
           {/* Email */}
@@ -249,8 +260,8 @@ export default function FindUs() {
               </svg>
               <BlockTitle>Email Us</BlockTitle>
             </BlockHeader>
-            <EmailLink href="mailto:Connect@Emganwinisda.org">
-              Connect@Emganwinisda.org
+            <EmailLink href={`mailto:${settings.email || 'Connect@Emganwinisda.org'}`}>
+              {settings.email || 'Connect@Emganwinisda.org'}
             </EmailLink>
           </InfoBlock>
         </InfoArea>
