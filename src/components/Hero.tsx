@@ -8,11 +8,15 @@ const fadeUp = keyframes`
 
 const HeroSection = styled.section`
   position: relative;
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   align-items: center;
+  justify-content: center;
   overflow: hidden;
+  box-sizing: border-box;
   background-image: url('${heroBg}');
   background-size: cover;
   background-position: center 38%;
@@ -50,12 +54,13 @@ const Container = styled.div`
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
-  padding: 120px 48px 80px;
+  padding: 100px 48px 40px;
+  box-sizing: border-box;
   position: relative;
   z-index: 2;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    padding: 100px 24px 60px;
+    padding: 85px 24px 30px;
   }
 `
 
