@@ -2,31 +2,37 @@ import styled, { keyframes } from 'styled-components'
 import heroBg from '../images/emganwini-hero.jpeg'
 
 const fadeUp = keyframes`
-  from { opacity: 0; transform: translateY(28px); }
+  from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
 `
 
 const HeroSection = styled.section`
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   background-image: url('${heroBg}');
   background-size: cover;
-  background-position: center;
+  background-position: center 38%;
   background-attachment: fixed;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    background-attachment: scroll;
+    background-position: center center;
+  }
 `
 
-const Overlay = styled.div`
+const DarkScrim = styled.div`
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    160deg,
-    rgba(0, 0, 0, 0.55) 0%,
-    rgba(0, 0, 0, 0.45) 50%,
-    rgba(0, 0, 0, 0.60) 100%
+  background: radial-gradient(
+    ellipse at center,
+    rgba(10, 15, 26, 0.60) 0%,
+    rgba(10, 15, 26, 0.78) 55%,
+    rgba(7, 10, 18, 0.90) 100%
   );
   pointer-events: none;
 `
@@ -35,51 +41,84 @@ const Content = styled.div`
   position: relative;
   z-index: 2;
   text-align: center;
-  max-width: 680px;
-  padding: 0 24px;
+  max-width: 820px;
+  padding: 80px 24px 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
 `
 
-const Eyebrow = styled.p`
+const BadgeTag = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 40px;
+  padding: 6px 18px;
   font-family: ${({ theme }) => theme.fonts.sans};
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.25em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: ${({ theme }) => theme.colors.gold};
-  margin-bottom: 20px;
-  animation: ${fadeUp} 0.7s ease both;
+  color: #ffffff;
+  margin-bottom: 24px;
+  animation: ${fadeUp} 0.65s ease both;
   animation-delay: 0.1s;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+
+  span.dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #1DA1F2;
+    display: inline-block;
+  }
 `
 
 const Headline = styled.h1`
   font-family: ${({ theme }) => theme.fonts.serif};
-  font-size: clamp(40px, 6vw, 76px);
+  font-size: clamp(38px, 6.2vw, 74px);
   font-weight: 700;
   color: #ffffff;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  margin-bottom: 24px;
-  animation: ${fadeUp} 0.7s ease both;
-  animation-delay: 0.25s;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  margin: 0 0 18px;
+  text-shadow: 0 4px 28px rgba(0, 0, 0, 0.75), 0 1px 3px rgba(0, 0, 0, 0.9);
+  animation: ${fadeUp} 0.65s ease both;
+  animation-delay: 0.2s;
 
   em {
     font-style: normal;
-    color: ${({ theme }) => theme.colors.gold};
+    color: #ffffff;
+    font-weight: 700;
+    position: relative;
+    display: inline-block;
   }
 `
 
-// ── CTA group ─────────────────────────────────────────────────────────────────
+const Subtitle = styled.p`
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: clamp(15px, 2vw, 19px);
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.6;
+  max-width: 620px;
+  margin: 0 0 32px;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.8);
+  animation: ${fadeUp} 0.65s ease both;
+  animation-delay: 0.35s;
+`
 
 const CtaGroup = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  animation: ${fadeUp} 0.7s ease both;
-  animation-delay: 0.55s;
+  animation: ${fadeUp} 0.65s ease both;
+  animation-delay: 0.45s;
 `
 
 const PrimaryBtn = styled.a`
@@ -88,21 +127,39 @@ const PrimaryBtn = styled.a`
   gap: 8px;
   font-family: ${({ theme }) => theme.fonts.sans};
   font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: ${({ theme }) => theme.colors.white};
+  color: #ffffff;
   background: #1DA1F2;
-  padding: 14px 32px;
-  border-radius: ${({ theme }) => theme.radius.full};
+  padding: 14px 34px;
+  border-radius: 40px;
   text-decoration: none;
-  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 4px 20px rgba(29, 161, 242, 0.35);
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 24px rgba(29, 161, 242, 0.45);
+
+  svg {
+    width: 15px;
+    height: 15px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.2s ease;
+  }
 
   &:hover {
-    background: #1a8fd1;
+    background: #1890d9;
     transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(29, 161, 242, 0.45);
+    box-shadow: 0 10px 30px rgba(29, 161, 242, 0.6);
+    svg {
+      transform: translateX(3px);
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `
 
@@ -115,10 +172,10 @@ const SocialRow = styled.div`
 const SocialDivider = styled.span`
   font-family: ${({ theme }) => theme.fonts.sans};
   font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.12em;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.55);
 `
 
 const SocialBtn = styled.a`
@@ -127,15 +184,17 @@ const SocialBtn = styled.a`
   gap: 7px;
   font-family: ${({ theme }) => theme.fonts.sans};
   font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.85);
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
-  border-radius: ${({ theme }) => theme.radius.full};
-  padding: 9px 18px 9px 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 40px;
+  padding: 8px 18px 8px 14px;
   text-decoration: none;
-  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
 
   svg {
@@ -147,17 +206,16 @@ const SocialBtn = styled.a`
 
   &:hover {
     color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.7);
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
   }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
     font-size: 11px;
-    padding: 8px 14px 8px 11px;
+    padding: 7px 14px 7px 11px;
   }
 `
-
-// ── TikTok icon ───────────────────────────────────────────────────────────────
 
 function TikTokIcon() {
   return (
@@ -167,8 +225,6 @@ function TikTokIcon() {
   )
 }
 
-// ── YouTube icon ──────────────────────────────────────────────────────────────
-
 function YouTubeIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -177,21 +233,36 @@ function YouTubeIcon() {
   )
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
-
 export default function Hero() {
   return (
     <HeroSection>
-      <Overlay />
+      <DarkScrim />
       <Content>
-        <Eyebrow>Emganwini, Bulawayo</Eyebrow>
+        <BadgeTag>
+          <span className="dot" />
+          Emganwini, Bulawayo
+        </BadgeTag>
+
         <Headline>
-          Welcome to <em>Emganwini Main</em>
-          <br />SDA Church
+          Welcome to
+          <br />
+          <em>Emganwini Main</em>
+          <br />
+          SDA Church
         </Headline>
 
+        <Subtitle>
+          A Christ-centered church transforming lives through teaching, preaching, and community fellowship.
+        </Subtitle>
+
         <CtaGroup>
-          <PrimaryBtn href="/contact">Join Us This Saturday</PrimaryBtn>
+          <PrimaryBtn href="/contact">
+            Join Us This Saturday
+            <svg viewBox="0 0 24 24">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </PrimaryBtn>
 
           <SocialRow>
             <SocialDivider>Follow Us</SocialDivider>
