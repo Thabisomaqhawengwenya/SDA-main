@@ -28,11 +28,12 @@ const NAV: NavSectionConfig[] = [
     ],
   },
   {
-    group: 'EVENTS',
+    group: 'CONTENT',
     items: [
-      { label: 'Events',     path: '/admin/events',     icon: <CalendarIcon /> },
-      { label: 'Sermons',    path: '/admin/sermons',    icon: <PlayIcon /> },
-      { label: 'Ministries', path: '/admin/ministries', icon: <UsersIcon /> },
+      { label: 'Announcements', path: '/admin/announcements', icon: <AlertIcon /> },
+      { label: 'Events',        path: '/admin/events',        icon: <CalendarIcon /> },
+      { label: 'Sermons',       path: '/admin/sermons',       icon: <PlayIcon /> },
+      { label: 'Ministries',    path: '/admin/ministries',    icon: <UsersIcon /> },
     ],
   },
   {
@@ -42,14 +43,15 @@ const NAV: NavSectionConfig[] = [
       { label: 'Services',        path: '/admin/services',        icon: <ClockIcon /> },
       { label: 'Leadership',      path: '/admin/leadership',      icon: <StarIcon /> },
       { label: 'Members',         path: '/admin/members',         icon: <UserIcon /> },
-      { label: 'Prayer Requests', path: '/admin/prayer-requests', icon: <HeartIcon /> },
       { label: 'Giving',          path: '/admin/giving',          icon: <DollarIcon /> },
     ],
   },
   {
     group: 'COMMUNICATION',
     items: [
-      { label: 'Notifications', path: '/admin/notifications', icon: <AlertIcon /> },
+      { label: 'Messages',        path: '/admin/messages',        icon: <MailIcon /> },
+      { label: 'Prayer Requests', path: '/admin/prayer-requests', icon: <HeartIcon /> },
+      { label: 'Notifications',   path: '/admin/notifications',   icon: <AlertIcon /> },
     ],
   },
   {
@@ -61,7 +63,9 @@ const NAV: NavSectionConfig[] = [
   {
     group: 'SYSTEM',
     items: [
-      { label: 'Settings', path: '/admin/settings', icon: <SettingsIcon /> },
+      { label: 'Users & Roles', path: '/admin/users',        icon: <UserIcon /> },
+      { label: 'Activity Log',  path: '/admin/activity-log', icon: <ClockIcon /> },
+      { label: 'Settings',      path: '/admin/settings',     icon: <SettingsIcon /> },
     ],
   },
 ]

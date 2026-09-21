@@ -500,10 +500,12 @@ export default function Navbar() {
                   </svg>
                 </DropdownTrigger>
                 <Dropdown>
-                  <DropdownItem to="/ministries/youth">Youth</DropdownItem>
+                  <DropdownItem to="/ministries/youth">Youth &amp; Young Adults</DropdownItem>
+                  <DropdownItem to="/ministries/prayer">Prayer Ministry</DropdownItem>
+                  <DropdownItem to="/ministries/health">Health &amp; Temperance</DropdownItem>
                   <DropdownItem to="/ministries/women">Women's Ministry</DropdownItem>
                   <DropdownItem to="/ministries/men">AMO – Adventist Men's Organisation</DropdownItem>
-                  <DropdownItem to="/ministries/children">Children</DropdownItem>
+                  <DropdownItem to="/ministries/children">Children's Ministry</DropdownItem>
                   <DropdownItem to="/ministries/community">Community Outreach</DropdownItem>
                 </Dropdown>
               </DropdownWrapper>
