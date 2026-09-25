@@ -130,6 +130,29 @@ const BottomLinks = styled.div`
   }
 `
 
+const DeveloperCredit = styled.p`
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: 13px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.4);
+
+  a {
+    color: #89cff0;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease, text-decoration 0.2s ease;
+
+    &:hover {
+      color: #bfe9ff;
+      text-decoration: underline;
+    }
+  }
+`
+
 export default function Footer() {
   const year = new Date().getFullYear()
 
@@ -199,6 +222,17 @@ export default function Footer() {
             <Link to="/admin" style={{ opacity: 0.35, fontSize: '11px' }}>Admin</Link>
           </BottomLinks>
         </Bottom>
+
+        <DeveloperCredit>
+          Developed by{' '}
+          <a
+            href="https://maqhawe-portfolio.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Maqhawe Ngwenya
+          </a>
+        </DeveloperCredit>
       </Container>
     </FooterEl>
   )
